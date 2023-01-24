@@ -18,6 +18,10 @@ build-traffic:
     - docker push $CI_REGISTRY_IMAGE/evrich/traffic:latest
   tags:
     - docker
+  rules:
+    - changes /external/traffic/**
+    
+  
 
 
 build-aggregator-1:       # This job runs in the build stage, which runs first.
