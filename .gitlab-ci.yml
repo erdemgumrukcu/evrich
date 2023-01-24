@@ -1,5 +1,5 @@
-variables:
-  DOCKER_BUILD_IMAGE:  docker
+# variables:
+#   DOCKER_BUILD_IMAGE:  docker
 
 stages:          # List of stages for jobs, and their order of execution
   - build
@@ -19,6 +19,9 @@ build-traffic:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build -t $CI_REGISTRY_IMAGE/evrich/traffic:latest ./Dockerfile
     - docker push $CI_REGISTRY_IMAGE/evrich/traffic:latest
+  tags:
+    - docker
+
 
 build-aggregator-1:       # This job runs in the build stage, which runs first.
   # image:  $DOCKER_BUILD_IMAGE
