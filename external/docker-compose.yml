@@ -1,0 +1,60 @@
+version: "3"
+
+networks:
+  
+  traffic_network:
+    driver: bridge
+  aggregator_network:
+    driver: bridge
+
+services:
+
+  trafficapi:
+    container_name: TrafficAPI
+    build: 
+      context: ./traffic
+      dockerfile: ./Dockerfile
+    networks:
+      - traffic_network
+    ports:
+      - 8000:8000
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  aggregator1:
+    container_name: Aggregator1
+    build: 
+      context: ./aggregator1
+      dockerfile: ./Dockerfile
+    networks:
+      - aggregator_network
+    ports:
+      - 9001:9001
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  aggregator2:
+    container_name: Aggregator2
+    build: 
+      context: ./aggregator2
+      dockerfile: ./Dockerfile
+    networks:
+      - aggregator_network
+    ports:
+      - 9002:9002
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  aggregator3:
+    container_name: Aggregator3
+    build: 
+      context: ./aggregator3
+      dockerfile: ./Dockerfile
+    networks:
+      - aggregator_network
+    ports:
+      - 9003:9003
+    environment:
+      - PYTHONUNBUFFERED=1
+
+          
