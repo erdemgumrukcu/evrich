@@ -35,6 +35,9 @@ build-aggregator-1:       # This job runs in the build stage, which runs first.
     - docker push $CI_REGISTRY_IMAGE/evrich/aggregator1:latest
   tags:
     - docker
+  rules:
+    - changes: 
+      - external/aggregator1/**
 
 build-aggregator-2:       # This job runs in the build stage, which runs first.
   # image:  $DOCKER_BUILD_IMAGE
@@ -46,6 +49,9 @@ build-aggregator-2:       # This job runs in the build stage, which runs first.
     - docker push $CI_REGISTRY_IMAGE/evrich/aggregator2:latest
   tags:
     - docker
+  rules:
+    - changes: 
+      - external/aggregator2/**
 
 
 build-aggregator-3:       # This job runs in the build stage, which runs first.
@@ -58,6 +64,9 @@ build-aggregator-3:       # This job runs in the build stage, which runs first.
     - docker push $CI_REGISTRY_IMAGE/evrich/aggregator3:latest
   tags:
     - docker
+  rules:
+    - changes: 
+      - external/aggregator3/**
     
 build-connector:       # This job runs in the build stage, which runs first.
   # image:  $DOCKER_BUILD_IMAGE
@@ -69,6 +78,9 @@ build-connector:       # This job runs in the build stage, which runs first.
     - docker push $CI_REGISTRY_IMAGE/evrich/connector:latest
   tags:
     - docker
+  rules:
+    - changes: 
+      - sogno/connector/**
 
 build-routing:       # This job runs in the build stage, which runs first.
   # image:  $DOCKER_BUILD_IMAGE
@@ -80,6 +92,9 @@ build-routing:       # This job runs in the build stage, which runs first.
     - docker push $CI_REGISTRY_IMAGE/evrich/routing:latest
   tags:
     - docker
+  rules:
+    - changes: 
+      - sogno/optimization/**
 
 build-api:       # This job runs in the build stage, which runs first.
   # image:  $DOCKER_BUILD_IMAGE
@@ -91,6 +106,9 @@ build-api:       # This job runs in the build stage, which runs first.
     - docker push $CI_REGISTRY_IMAGE/evrich/api:latest
   tags:
     - docker
+    rules:
+    - changes: 
+      - sogno/serviceapi/**
 
 
 
