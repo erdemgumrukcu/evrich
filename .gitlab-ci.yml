@@ -1,6 +1,3 @@
-# variables:
-#   DOCKER_BUILD_IMAGE:  docker
-
 stages:          # List of stages for jobs, and their order of execution
   - build
   - test
@@ -31,6 +28,8 @@ build-aggregator-1:       # This job runs in the build stage, which runs first.
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build -t $CI_REGISTRY_IMAGE/evrich/aggregator1:latest -f ./Dockerfile .
     - docker push $CI_REGISTRY_IMAGE/evrich/aggregator1:latest
+  tags:
+    - docker
 
 build-aggregator-2:       # This job runs in the build stage, which runs first.
   # image:  $DOCKER_BUILD_IMAGE
@@ -40,6 +39,9 @@ build-aggregator-2:       # This job runs in the build stage, which runs first.
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build -t $CI_REGISTRY_IMAGE/evrich/aggregator2:latest -f ./Dockerfile .
     - docker push $CI_REGISTRY_IMAGE/evrich/aggregator2:latest
+  tags:
+    - docker
+
 
 build-aggregator-3:       # This job runs in the build stage, which runs first.
   # image:  $DOCKER_BUILD_IMAGE
@@ -49,6 +51,8 @@ build-aggregator-3:       # This job runs in the build stage, which runs first.
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build -t $CI_REGISTRY_IMAGE/evrich/aggregator3:latest -f ./Dockerfile .
     - docker push $CI_REGISTRY_IMAGE/evrich/aggregator3:latest
+  tags:
+    - docker
     
 build-connector:       # This job runs in the build stage, which runs first.
   # image:  $DOCKER_BUILD_IMAGE
@@ -58,6 +62,8 @@ build-connector:       # This job runs in the build stage, which runs first.
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build -t $CI_REGISTRY_IMAGE/evrich/connector:latest -f ./Dockerfile .
     - docker push $CI_REGISTRY_IMAGE/evrich/connector:latest
+  tags:
+    - docker
 
 build-routing:       # This job runs in the build stage, which runs first.
   # image:  $DOCKER_BUILD_IMAGE
@@ -67,6 +73,8 @@ build-routing:       # This job runs in the build stage, which runs first.
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build -t $CI_REGISTRY_IMAGE/evrich/routing:latest -f ./Dockerfile .
     - docker push $CI_REGISTRY_IMAGE/evrich/routing:latest
+  tags:
+    - docker
 
 build-api:       # This job runs in the build stage, which runs first.
   # image:  $DOCKER_BUILD_IMAGE
@@ -76,6 +84,8 @@ build-api:       # This job runs in the build stage, which runs first.
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build -t $CI_REGISTRY_IMAGE/evrich/api:latest -f ./Dockerfile .
     - docker push $CI_REGISTRY_IMAGE/evrich/api:latest
+  tags:
+    - docker
 
 
 
