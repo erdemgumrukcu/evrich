@@ -1,5 +1,5 @@
 variables:
-  DOCKER_BUILD_IMAGE:  ubuntu
+  DOCKER_BUILD_IMAGE:  docker
 
 stages:          # List of stages for jobs, and their order of execution
   - build
@@ -11,7 +11,7 @@ stages:          # List of stages for jobs, and their order of execution
     - if: $CI_COMMIT_BRANCH == "1-create-deployment-pipeline" 
 
 build-traffic:
-  image: $DOCKER_BUILD_IMAGE
+  # image: $DOCKER_BUILD_IMAGE
   stage: build
   script:
     - cd external/traffic
@@ -21,7 +21,7 @@ build-traffic:
     - docker push $CI_REGISTRY_IMAGE/evrich/traffic:latest
 
 build-aggregator-1:       # This job runs in the build stage, which runs first.
-  image:  $DOCKER_BUILD_IMAGE
+  # image:  $DOCKER_BUILD_IMAGE
   stage: build
   script:
     - cd external/aggregator1
@@ -30,7 +30,7 @@ build-aggregator-1:       # This job runs in the build stage, which runs first.
     - docker push $CI_REGISTRY_IMAGE/evrich/aggregator1:latest
 
 build-aggregator-2:       # This job runs in the build stage, which runs first.
-  image:  $DOCKER_BUILD_IMAGE
+  # image:  $DOCKER_BUILD_IMAGE
   stage: build
   script:
     - cd external/aggregator2
@@ -39,7 +39,7 @@ build-aggregator-2:       # This job runs in the build stage, which runs first.
     - docker push $CI_REGISTRY_IMAGE/evrich/aggregator2:latest
 
 build-aggregator-3:       # This job runs in the build stage, which runs first.
-  image:  $DOCKER_BUILD_IMAGE
+  # image:  $DOCKER_BUILD_IMAGE
   stage: build
   script:
     - cd external/aggregator3
@@ -48,7 +48,7 @@ build-aggregator-3:       # This job runs in the build stage, which runs first.
     - docker push $CI_REGISTRY_IMAGE/evrich/aggregator3:latest
     
 build-connector:       # This job runs in the build stage, which runs first.
-  image:  $DOCKER_BUILD_IMAGE
+  # image:  $DOCKER_BUILD_IMAGE
   stage: build
   script:
     - cd sogno/connector
@@ -57,7 +57,7 @@ build-connector:       # This job runs in the build stage, which runs first.
     - docker push $CI_REGISTRY_IMAGE/evrich/connector:latest
 
 build-routing:       # This job runs in the build stage, which runs first.
-  image:  $DOCKER_BUILD_IMAGE
+  # image:  $DOCKER_BUILD_IMAGE
   stage: build
   script:
     - cd sogno/optimization
@@ -66,7 +66,7 @@ build-routing:       # This job runs in the build stage, which runs first.
     - docker push $CI_REGISTRY_IMAGE/evrich/routing:latest
 
 build-api:       # This job runs in the build stage, which runs first.
-  image:  $DOCKER_BUILD_IMAGE
+  # image:  $DOCKER_BUILD_IMAGE
   stage: build
   script:
     - cd sogno/serviceapi
