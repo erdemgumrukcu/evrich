@@ -19,7 +19,8 @@ build-traffic:
   tags:
     - docker
   rules:
-    - changes: /external/traffic/**
+    - changes: 
+      - /external/traffic/**
     
   
 
