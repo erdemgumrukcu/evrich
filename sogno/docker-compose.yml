@@ -1,0 +1,95 @@
+version: "3"
+
+networks:
+  sogno_network:
+    driver: bridge
+  external_traffic_network:
+    external: true
+  external_aggregator_network:
+    external: true
+
+services:
+
+    gatewaymqtt:
+      image: toke/mosquitto
+      container_name: broker
+      expose:
+        - 1883
+      ports:
+        - 1883:1883
+      restart: unless-stopped
+      networks:
+        - sogno_network
+
+    serviceapi:
+      container_name: ServiceAPI
+      build: 
+        context: ./serviceapi
+        dockerfile: ./Dockerfile
+      networks:
+        - sogno_network
+        - external_traffic_network
+      ports:
+        - 7000:7000
+      environment:
+        - TRAFFIC_URL=http://host.docker.internal:8000/trafficforecast/
+        - PYTHONUNBUFFERED=1
+          
+    routingalgorithm:
+      container_name: SmartRouting
+      build: 
+        context: ./optimization
+        dockerfile: ./Dockerfile
+      networks:
+        - sogno_network
+      environment:
+        - PYTHONUNBUFFERED=1
+      
+    connector1:
+      container_name: Connector1
+      build: 
+        context: ./connector
+        dockerfile: ./Dockerfile
+      networks:
+        - sogno_network
+        - external_aggregator_network
+      environment:
+        - CONNECTOR_ID=aggregator1
+        - AGGREGATOR_URL=http://host.docker.internal:9001/availability/
+        - REQUEST_TOPIC=availability/request/aggregator1
+        - RESPONSE_TOPIC=availability/response/aggregator1
+        - PYTHONUNBUFFERED=1
+
+    connector2:
+      container_name: Connector2
+      build: 
+        context: ./connector
+        dockerfile: ./Dockerfile
+      networks:
+        - sogno_network
+        - external_aggregator_network
+      environment:
+        - CONNECTOR_ID=aggregator2
+        - AGGREGATOR_URL=http://host.docker.internal:9002/availability/
+        - REQUEST_TOPIC=availability/request/aggregator2
+        - RESPONSE_TOPIC=availability/response/aggregator2
+        - PYTHONUNBUFFERED=1
+
+    connector3:
+      container_name: Connector3
+      build: 
+        context: ./connector
+        dockerfile: ./Dockerfile
+      networks:
+        - sogno_network
+        - external_aggregator_network
+      environment:
+        - CONNECTOR_ID=aggregator3
+        - AGGREGATOR_URL=http://host.docker.internal:9003/availability/
+        - REQUEST_TOPIC=availability/request/aggregator3
+        - RESPONSE_TOPIC=availability/response/aggregator3
+        - PYTHONUNBUFFERED=1
+
+
+
+
