@@ -106,9 +106,9 @@ build-api:       # This job runs in the build stage, which runs first.
     - docker push $CI_REGISTRY_IMAGE/evrich/api:latest
   tags:
     - docker
-    rules:
-    - changes: 
-      - sogno/serviceapi/**
+  rules:
+  - changes: 
+    - sogno/serviceapi/**
 
 
 
