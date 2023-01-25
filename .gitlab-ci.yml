@@ -14,8 +14,8 @@ build-traffic:
     - cd external/traffic
     - echo $CI_REGISTRY
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE/evrich/traffic:latest -f ./Dockerfile .
-    - docker push $CI_REGISTRY_IMAGE/evrich/traffic:latest
+    - docker build -t $CI_REGISTRY_IMAGE/traffic:latest -f ./Dockerfile .
+    - docker push $CI_REGISTRY_IMAGE/traffic:latest
   tags:
     - docker
   rules:
@@ -31,8 +31,8 @@ build-aggregator-1:       # This job runs in the build stage, which runs first.
   script:
     - cd external/aggregator1
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE/evrich/aggregator1:latest -f ./Dockerfile .
-    - docker push $CI_REGISTRY_IMAGE/evrich/aggregator1:latest
+    - docker build -t $CI_REGISTRY_IMAGE/aggregator1:latest -f ./Dockerfile .
+    - docker push $CI_REGISTRY_IMAGE/aggregator1:latest
   tags:
     - docker
   rules:
@@ -45,8 +45,8 @@ build-aggregator-2:       # This job runs in the build stage, which runs first.
   script:
     - cd external/aggregator2
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE/evrich/aggregator2:latest -f ./Dockerfile .
-    - docker push $CI_REGISTRY_IMAGE/evrich/aggregator2:latest
+    - docker build -t $CI_REGISTRY_IMAGE/aggregator2:latest -f ./Dockerfile .
+    - docker push $CI_REGISTRY_IMAGE/aggregator2:latest
   tags:
     - docker
   rules:
@@ -60,8 +60,8 @@ build-aggregator-3:       # This job runs in the build stage, which runs first.
   script:
     - cd external/aggregator3
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE/evrich/aggregator3:latest -f ./Dockerfile .
-    - docker push $CI_REGISTRY_IMAGE/evrich/aggregator3:latest
+    - docker build -t $CI_REGISTRY_IMAGE/aggregator3:latest -f ./Dockerfile .
+    - docker push $CI_REGISTRY_IMAGE/aggregator3:latest
   tags:
     - docker
   rules:
@@ -74,8 +74,8 @@ build-connector:       # This job runs in the build stage, which runs first.
   script:
     - cd sogno/connector
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE/evrich/connector:latest -f ./Dockerfile .
-    - docker push $CI_REGISTRY_IMAGE/evrich/connector:latest
+    - docker build -t $CI_REGISTRY_IMAGE/connector:latest -f ./Dockerfile .
+    - docker push $CI_REGISTRY_IMAGE/connector:latest
   tags:
     - docker
   rules:
@@ -88,8 +88,8 @@ build-routing:       # This job runs in the build stage, which runs first.
   script:
     - cd sogno/optimization
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE/evrich/routing:latest -f ./Dockerfile .
-    - docker push $CI_REGISTRY_IMAGE/evrich/routing:latest
+    - docker build -t $CI_REGISTRY_IMAGE/routing:latest -f ./Dockerfile .
+    - docker push $CI_REGISTRY_IMAGE/routing:latest
   tags:
     - docker
   rules:
@@ -102,8 +102,8 @@ build-api:       # This job runs in the build stage, which runs first.
   script:
     - cd sogno/serviceapi
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE/evrich/api:latest -f ./Dockerfile .
-    - docker push $CI_REGISTRY_IMAGE/evrich/api:latest
+    - docker build -t $CI_REGISTRY_IMAGE/api:latest -f ./Dockerfile .
+    - docker push $CI_REGISTRY_IMAGE/api:latest
   tags:
     - docker
   rules:
