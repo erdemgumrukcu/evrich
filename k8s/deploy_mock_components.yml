@@ -3,6 +3,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: evrich-traffic
+  namespace: sogno-dev
+  labels:
+    app: evrich-traffic
 spec:
   selector:
     matchLabels:
@@ -29,6 +32,9 @@ apiVersion: v1
 kind: Service
 metadata:
   name: evrich-traffic-service
+  namespace: sogno-dev
+  labels:
+    app: evrich-traffic
 spec:
   selector:
     app: evrich-traffic
@@ -43,6 +49,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: evrich-aggregator-1
+  namespace: sogno-dev
+  labels:
+    app: evrich-aggregator-1
 spec:
   selector:
     matchLabels:
@@ -69,6 +78,9 @@ apiVersion: v1
 kind: Service
 metadata:
   name: evrich-aggregator-1-service
+  namespace: sogno-dev
+  labels:
+    app: evrich-aggregator-1
 spec:
   selector:
     app: evrich-aggregator-1
@@ -81,6 +93,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: evrich-aggregator-2
+  namespace: sogno-dev
+  labels:
+    app: evrich-aggregator-2
 spec:
   selector:
     matchLabels:
@@ -107,6 +122,9 @@ apiVersion: v1
 kind: Service
 metadata:
   name: evrich-aggregator-2-service
+  namespace: sogno-dev
+  labels:
+    app: evrich-aggregator-2
 spec:
   selector:
     app: evrich-aggregator-2
@@ -119,6 +137,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: evrich-aggregator-3
+  namespace: sogno-dev
+  labels:
+    app: evrich-aggregator-3
 spec:
   selector:
     matchLabels:
@@ -145,6 +166,9 @@ apiVersion: v1
 kind: Service
 metadata:
   name: evrich-aggregator-3-service
+  namespace: sogno-dev
+  labels:
+    app: evrich-aggregator-3
 spec:
   selector:
     app: evrich-aggregator-3

@@ -114,6 +114,9 @@ apiVersion: v1
 kind: Service
 metadata:
   name: evrich-api
+  namespace: sogno-dev
+  labels:
+    app: evrich-api
 spec:
   selector:
     app: evrich-api
@@ -162,6 +165,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: evrich-connector-1
+  namespace: sogno-dev
+  labels:
+    app: evrich-connector-1
 spec:
   selector:
     matchLabels:
@@ -218,6 +224,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: evrich-connector-2
+  namespace: sogno-dev
+  labels:
+    app: evrich-connector-2
 spec:
   selector:
     matchLabels:
@@ -273,6 +282,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: evrich-connector-3
+  namespace: sogno-dev
+  labels:
+    app: evrich-connector-3
 spec:
   selector:
     matchLabels:
