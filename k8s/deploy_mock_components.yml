@@ -23,6 +23,7 @@ spec:
             cpu: "500m"
         ports:
         - containerPort: 8000
+        imagePullPolicy: Always
 ---
 apiVersion: v1
 kind: Service
@@ -62,6 +63,7 @@ spec:
             cpu: "500m"
         ports:
         - containerPort: 9001
+        imagePullPolicy: Always
 ---
 apiVersion: v1
 kind: Service
@@ -99,6 +101,7 @@ spec:
             cpu: "500m"
         ports:
         - containerPort: 9002
+        imagePullPolicy: Always
 ---
 apiVersion: v1
 kind: Service
@@ -136,6 +139,7 @@ spec:
             cpu: "500m"
         ports:
         - containerPort: 9003
+        imagePullPolicy: Always
 ---
 apiVersion: v1
 kind: Service
