@@ -99,6 +99,16 @@ spec:
                 configMapKeyRef:
                   name: evrich-config
                   key: TRAFFIC_URL
+            - name: MQTT_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: MQTT_URL
+            - name: MQTT_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: MQTT_PORT
 ---
 apiVersion: v1
 kind: Service
