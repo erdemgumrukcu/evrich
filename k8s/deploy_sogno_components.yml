@@ -8,10 +8,10 @@ data:
   MQTT_PORT: "1883"
   ROUTING_REQUEST_TOPIC: routing/request/emo
   ROUTING_RESPONSE_TOPIC: routing/response/emo
-  TRAFFIC_URL: <INSERT VALUE HERE>/trafficforecast/
-  AGGREGATOR_URL_1: http://<INSERT VALUE HERE>:9001/availability/
-  AGGREGATOR_URL_2: http://<INSERT VALUE HERE>:9002/availability/
-  AGGREGATOR_URL_3: http://<INSERT VALUE HERE>:9003/availability/
+  TRAFFIC_URL: evrich-traffic-service:8000/trafficforecast/
+  AGGREGATOR_URL_1: http://evrich-aggregator-1-service:9001/availability/
+  AGGREGATOR_URL_2: http://evrich-aggregator-2-service:9002/availability/
+  AGGREGATOR_URL_3: http://evrich-aggregator-3-service:9003/availability/
   CONNECTOR_ID_1: aggregator1
   CONNECTOR_ID_2: aggregator2
   CONNECTOR_ID_3: aggregator3
@@ -22,7 +22,6 @@ data:
   AGGREGATOR_RESPONSE_TOPIC_2: availability/response/aggregator2
   AGGREGATOR_RESPONSE_TOPIC_3: availability/response/aggregator3
 ---
-
 # MQTT
 apiVersion: apps/v1
 kind: Deployment
@@ -39,19 +38,18 @@ spec:
         app: evrich-mqtt-broker
     spec:
       containers:
-      - name: evrich-mqtt-broker
-        image: toke/mosquitto
-        resources:
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
-        envFrom:
-          - configMapRef:
-              name: evrich-config
-        ports:
-        - containerPort: 1883
+        - name: evrich-mqtt-broker
+          image: toke/mosquitto
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          envFrom:
+            - configMapRef:
+                name: evrich-config
+          ports:
+            - containerPort: 1883
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -83,24 +81,25 @@ spec:
       labels:
         app: evrich-api
     spec:
-      imagePullSecrets: 
-      - name: gitlab-evrich-token
+      imagePullSecrets:
+        - name: gitlab-evrich-token
       containers:
-      - name: evrich-routing
-        image: registry.git.rwth-aachen.de/acs/public/automation/evrich/api
-        resources:
-          limits:
-            memory: 1G
-            cpu: 1.0
-        imagePullPolicy: Always
-        env:
-          - name: TRAFFIC_URL
-            valueFrom:
-              configMapKeyRef:
-                name: evrich-config
-                key: TRAFFIC_URL
+        - name: evrich-routing
+          image: registry.git.rwth-aachen.de/acs/public/automation/evrich/api
+          resources:
+            limits:
+              memory: 1G
+              cpu: 1.0
+          ports:
+            - containerPort: 7000
+          imagePullPolicy: Always
+          env:
+            - name: TRAFFIC_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: TRAFFIC_URL
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -109,11 +108,9 @@ spec:
   selector:
     app: evrich-api
   ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 80
-
-
+    - protocol: TCP
+      port: 80
+      targetPort: 7000
 
 ---
 # SmartRouting
@@ -134,20 +131,20 @@ spec:
       labels:
         app: evrich-routing
     spec:
-      imagePullSecrets: 
-      - name: gitlab-evrich-token
+      imagePullSecrets:
+        - name: gitlab-evrich-token
       containers:
-      - name: evrich-routing
-        image: registry.git.rwth-aachen.de/acs/public/automation/evrich/routing
-        resources:
-          limits:
-            memory: 1G
-            cpu: 1.0
-        imagePullPolicy: Always
-        # TODO: this wont work routing does not knwo what to to with these
-        envFrom:
-          - configMapRef:
-              name: evrich-config
+        - name: evrich-routing
+          image: registry.git.rwth-aachen.de/acs/public/automation/evrich/routing
+          resources:
+            limits:
+              memory: 1G
+              cpu: 1.0
+          imagePullPolicy: Always
+          # TODO: this wont work routing does not knwo what to to with these
+          envFrom:
+            - configMapRef:
+                name: evrich-config
 ---
 # Conectors
 ## 1
@@ -164,36 +161,36 @@ spec:
       labels:
         app: evrich-connector-1
     spec:
-      imagePullSecrets: 
-      - name: gitlab-evrich-token
+      imagePullSecrets:
+        - name: gitlab-evrich-token
       containers:
-      - name: evrich-connector-1
-        image: registry.git.rwth-aachen.de/acs/public/automation/evrich/connector
-        resources:
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
-        env:
-        - name: CONNECTOR_ID
-          valueFrom: 
-            configMapKeyRef:
-              name: evrich-config
-              key: CONNECTOR_ID_1
-        - name: AGGREGATOR_URL
-          valueFrom: 
-            configMapKeyRef:
-              name: evrich-config
-              key: AGGREGATOR_URL_1
-        - name: REQUEST_TOPIC
-          valueFrom: 
-            configMapKeyRef:
-              name: evrich-config
-              key: AGGREGATOR_REQUEST_TOPIC_1
-        - name: RESPONSE_TOPIC
-          valueFrom: 
-            configMapKeyRef:
-              name: evrich-config
-              key: AGGREGATOR_RESPONSE_TOPIC_1
+        - name: evrich-connector-1
+          image: registry.git.rwth-aachen.de/acs/public/automation/evrich/connector
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          env:
+            - name: CONNECTOR_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: CONNECTOR_ID_1
+            - name: AGGREGATOR_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: AGGREGATOR_URL_1
+            - name: REQUEST_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: AGGREGATOR_REQUEST_TOPIC_1
+            - name: RESPONSE_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: AGGREGATOR_RESPONSE_TOPIC_1
 
 ---
 ##2
@@ -210,36 +207,36 @@ spec:
       labels:
         app: evrich-connector-2
     spec:
-      imagePullSecrets: 
-      - name: gitlab-evrich-token
+      imagePullSecrets:
+        - name: gitlab-evrich-token
       containers:
-      - name: evrich-connector-2
-        image: registry.git.rwth-aachen.de/acs/public/automation/evrich/connector
-        resources:
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
-        env:
-        - name: CONNECTOR_ID
-          valueFrom: 
-            configMapKeyRef:
-              name: evrich-config
-              key: CONNECTOR_ID_2
-        - name: AGGREGATOR_URL
-          valueFrom: 
-            configMapKeyRef:
-              name: evrich-config
-              key: AGGREGATOR_URL_2
-        - name: REQUEST_TOPIC
-          valueFrom: 
-            configMapKeyRef:
-              name: evrich-config
-              key: AGGREGATOR_REQUEST_TOPIC_2
-        - name: RESPONSE_TOPIC
-          valueFrom: 
-            configMapKeyRef:
-              name: evrich-config
-              key: AGGREGATOR_RESPONSE_TOPIC_2
+        - name: evrich-connector-2
+          image: registry.git.rwth-aachen.de/acs/public/automation/evrich/connector
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          env:
+            - name: CONNECTOR_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: CONNECTOR_ID_2
+            - name: AGGREGATOR_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: AGGREGATOR_URL_2
+            - name: REQUEST_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: AGGREGATOR_REQUEST_TOPIC_2
+            - name: RESPONSE_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: AGGREGATOR_RESPONSE_TOPIC_2
 ---
 ##3
 apiVersion: apps/v1
@@ -255,36 +252,36 @@ spec:
       labels:
         app: evrich-connector-3
     spec:
-      imagePullSecrets: 
-      - name: gitlab-evrich-token
+      imagePullSecrets:
+        - name: gitlab-evrich-token
       containers:
-      - name: evrich-connector-3
-        image: registry.git.rwth-aachen.de/acs/public/automation/evrich/connector
-        resources:
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
-        env:
-        - name: CONNECTOR_ID
-          valueFrom: 
-            configMapKeyRef:
-              name: evrich-config
-              key: CONNECTOR_ID_3
-        - name: AGGREGATOR_URL
-          valueFrom: 
-            configMapKeyRef:
-              name: evrich-config
-              key: AGGREGATOR_URL_3
-        - name: REQUEST_TOPIC
-          valueFrom: 
-            configMapKeyRef:
-              name: evrich-config
-              key: AGGREGATOR_REQUEST_TOPIC_3
-        - name: RESPONSE_TOPIC
-          valueFrom: 
-            configMapKeyRef:
-              name: evrich-config
-              key: AGGREGATOR_RESPONSE_TOPIC_3
+        - name: evrich-connector-3
+          image: registry.git.rwth-aachen.de/acs/public/automation/evrich/connector
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          env:
+            - name: CONNECTOR_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: CONNECTOR_ID_3
+            - name: AGGREGATOR_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: AGGREGATOR_URL_3
+            - name: REQUEST_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: AGGREGATOR_REQUEST_TOPIC_3
+            - name: RESPONSE_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: AGGREGATOR_RESPONSE_TOPIC_3
 # apiVersion: v1
 # kind: Service
 # metadata:
@@ -317,7 +314,7 @@ spec:
 #       - backend:
 #           service:
 #             name: datafev-doc-service
-#             port: 
+#             port:
 #               number: 80
 #         path: /
 #         pathType: ImplementationSpecific
