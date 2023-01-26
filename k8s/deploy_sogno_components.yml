@@ -9,9 +9,9 @@ data:
   ROUTING_REQUEST_TOPIC: routing/request/emo
   ROUTING_RESPONSE_TOPIC: routing/response/emo
   TRAFFIC_URL: evrich-traffic-service:8000/trafficforecast/
-  AGGREGATOR_URL_1: http://evrich-aggregator-1-service:9001/availability/
-  AGGREGATOR_URL_2: http://evrich-aggregator-2-service:9002/availability/
-  AGGREGATOR_URL_3: http://evrich-aggregator-3-service:9003/availability/
+  AGGREGATOR_URL_1: evrich-aggregator-1-service:9001/availability/
+  AGGREGATOR_URL_2: evrich-aggregator-2-service:9002/availability/
+  AGGREGATOR_URL_3: evrich-aggregator-3-service:9003/availability/
   CONNECTOR_ID_1: aggregator1
   CONNECTOR_ID_2: aggregator2
   CONNECTOR_ID_3: aggregator3
@@ -191,6 +191,16 @@ spec:
                 configMapKeyRef:
                   name: evrich-config
                   key: AGGREGATOR_URL_1
+            - name: MQTT_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: MQTT_URL
+            - name: MQTT_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: MQTT_PORT
             - name: REQUEST_TOPIC
               valueFrom:
                 configMapKeyRef:
@@ -237,6 +247,16 @@ spec:
                 configMapKeyRef:
                   name: evrich-config
                   key: AGGREGATOR_URL_2
+            - name: MQTT_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: MQTT_URL
+            - name: MQTT_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: MQTT_PORT
             - name: REQUEST_TOPIC
               valueFrom:
                 configMapKeyRef:
@@ -282,6 +302,16 @@ spec:
                 configMapKeyRef:
                   name: evrich-config
                   key: AGGREGATOR_URL_3
+            - name: MQTT_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: MQTT_URL
+            - name: MQTT_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: evrich-config
+                  key: MQTT_PORT
             - name: REQUEST_TOPIC
               valueFrom:
                 configMapKeyRef:
