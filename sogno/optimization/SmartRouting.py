@@ -10,6 +10,7 @@ from pyomo.environ import SolverFactory
 import paho.mqtt.client as mqtt
 import json
 import pandas as pd
+import os
 
 
 def on_connect(client, userdata, flags, rc):
@@ -133,12 +134,8 @@ def on_message(client, userdata, message):
 def on_publish(client, userdata, result):
     print("routing signal returned...")
 
-
-# hostname
-broker = "gatewaymqtt"
-
-# port
-port = 1883
+mqtt_broker_url = os.getenv("MQTT_URL", "gatewaymqtt")
+mqtt_broker_port = int(os.getenv("MQTT_PORT", 1883))
 
 client = mqtt.Client("emo")
 
@@ -146,6 +143,6 @@ client.on_connect = on_connect
 client.on_message = on_message
 client.on_publish = on_publish
 
-client.connect(broker, port)
+client.connect(mqtt_broker_url, mqtt_broker_port)
 
 client.loop_forever()
