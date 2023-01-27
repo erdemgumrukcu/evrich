@@ -3,16 +3,15 @@ stages:          # List of stages for jobs, and their order of execution
   - test
   - deploy
 
-.default_rules:
-  rules:
-    - if: $CI_COMMIT_BRANCH == "1-create-deployment-pipeline" 
+# .default_rules:
+#   rules:
+#     - if: $CI_COMMIT_BRANCH == "main" 
 
 build-traffic:
   # image: $DOCKER_BUILD_IMAGE
   stage: build
   script:
     - cd external/traffic
-    - echo $CI_REGISTRY
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build -t $CI_REGISTRY_IMAGE/traffic:latest -f ./Dockerfile .
     - docker push $CI_REGISTRY_IMAGE/traffic:latest
