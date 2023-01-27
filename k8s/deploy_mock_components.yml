@@ -1,0 +1,180 @@
+# traffic
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evrich-traffic
+  namespace: sogno-dev
+  labels:
+    app: evrich-traffic
+spec:
+  selector:
+    matchLabels:
+      app: evrich-traffic
+  template:
+    metadata:
+      labels:
+        app: evrich-traffic
+    spec:
+      imagePullSecrets: 
+      - name: gitlab-evrich-token
+      containers:
+      - name: evrich-traffic
+        image: registry.git.rwth-aachen.de/acs/public/automation/evrich/traffic
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8000
+        imagePullPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: evrich-traffic-service
+  namespace: sogno-dev
+  labels:
+    app: evrich-traffic
+spec:
+  selector:
+    app: evrich-traffic
+  ports:
+  - port: 8000
+    targetPort: 8000
+
+  
+---
+# Aggregator 1
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evrich-aggregator-1
+  namespace: sogno-dev
+  labels:
+    app: evrich-aggregator-1
+spec:
+  selector:
+    matchLabels:
+      app: evrich-aggregator-1
+  template:
+    metadata:
+      labels:
+        app: evrich-aggregator-1
+    spec:
+      imagePullSecrets: 
+      - name: gitlab-evrich-token
+      containers:
+      - name: evrich-aggregator-1
+        image: registry.git.rwth-aachen.de/acs/public/automation/evrich/aggregator1
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 9001
+        imagePullPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: evrich-aggregator-1-service
+  namespace: sogno-dev
+  labels:
+    app: evrich-aggregator-1
+spec:
+  selector:
+    app: evrich-aggregator-1
+  ports:
+  - port: 9001
+    targetPort: 9001
+---
+# Aggregator 2
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evrich-aggregator-2
+  namespace: sogno-dev
+  labels:
+    app: evrich-aggregator-2
+spec:
+  selector:
+    matchLabels:
+      app: evrich-aggregator-2
+  template:
+    metadata:
+      labels:
+        app: evrich-aggregator-2
+    spec:
+      imagePullSecrets: 
+      - name: gitlab-evrich-token
+      containers:
+      - name: evrich-aggregator-2
+        image: registry.git.rwth-aachen.de/acs/public/automation/evrich/aggregator2
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 9002
+        imagePullPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: evrich-aggregator-2-service
+  namespace: sogno-dev
+  labels:
+    app: evrich-aggregator-2
+spec:
+  selector:
+    app: evrich-aggregator-2
+  ports:
+  - port: 9002
+    targetPort: 9002
+---
+# Aggregator 3
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evrich-aggregator-3
+  namespace: sogno-dev
+  labels:
+    app: evrich-aggregator-3
+spec:
+  selector:
+    matchLabels:
+      app: evrich-aggregator-3
+  template:
+    metadata:
+      labels:
+        app: evrich-aggregator-3
+    spec:
+      imagePullSecrets: 
+      - name: gitlab-evrich-token
+      containers:
+      - name: evrich-aggregator-3
+        image: registry.git.rwth-aachen.de/acs/public/automation/evrich/aggregator3
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 9003
+        imagePullPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: evrich-aggregator-3-service
+  namespace: sogno-dev
+  labels:
+    app: evrich-aggregator-3
+spec:
+  selector:
+    app: evrich-aggregator-3
+  ports:
+  - port: 9003
+    targetPort: 9003
+
+  
+  
