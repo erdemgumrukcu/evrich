@@ -94,11 +94,6 @@ spec:
             - containerPort: 7000
           imagePullPolicy: Always
           env:
-            - name: TRAFFIC_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: evrich-config
-                  key: TRAFFIC_URL
             - name: MQTT_URL
               valueFrom:
                 configMapKeyRef:
@@ -118,6 +113,7 @@ metadata:
   labels:
     app: evrich-api
 spec:
+  type: NodePort
   selector:
     app: evrich-api
   ports:
@@ -125,6 +121,39 @@ spec:
       port: 80
       targetPort: 7000
 
+---
+# Coordinator
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: evrich-coordinator
+  namespace: sogno-dev
+  labels:
+    app: evrich-coordinator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: evrich-coordinator
+  template:
+    metadata:
+      labels:
+        app: evrich-coordinator
+    spec:
+      imagePullSecrets:
+        - name: gitlab-evrich-token
+      containers:
+        - name: evrich-coordinator
+          image: registry.git.rwth-aachen.de/acs/public/automation/evrich/coordinator
+          resources:
+            limits:
+              memory: 1G
+              cpu: 1.0
+          imagePullPolicy: Always
+          # TODO: this wont work routing does not knwo what to to with these
+          envFrom:
+            - configMapRef:
+                name: evrich-config
 ---
 # SmartRouting
 apiVersion: apps/v1

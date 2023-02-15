@@ -61,13 +61,12 @@ def on_message(client, userdata, msg):
 
 
 #Platfrom data bus
-#TODO: Instead of hard-coding specify the broker port as an environment variable in docker-compose.yml 
-mqtt_broker_ip="gatewaymqtt"
-mqtt_broker_port=1883   
+mqtt_broker_url = os.getenv("MQTT_URL", "gatewaymqtt")
+mqtt_broker_port = int(os.getenv("MQTT_PORT", 1883))
 
 #MQTT client of the reservation service
 client = mqtt.Client("ServiceAPI")
-client.connect(mqtt_broker_ip,mqtt_broker_port)
+client.connect(mqtt_broker_url,mqtt_broker_port)
 client.on_connect = on_connect
 client.on_publish = on_publish
 client.on_message = on_message
