@@ -20,25 +20,33 @@ services:
       restart: unless-stopped
       networks:
         - sogno_network
-
-    serviceapi:
+    
+    api:
       container_name: ServiceAPI
       build: 
-        context: ./serviceapi
+        context: ./api
+        dockerfile: ./Dockerfile
+      networks:
+        - sogno_network
+      ports:
+        - 7000:7000
+        
+    coordinator:
+      container_name: Coordinator
+      build:
+        context:  ./coordinator
         dockerfile: ./Dockerfile
       networks:
         - sogno_network
         - external_traffic_network
-      ports:
-        - 7000:7000
       environment:
         - TRAFFIC_URL=http://host.docker.internal:8000/trafficforecast/
         - PYTHONUNBUFFERED=1
-          
+        
     routingalgorithm:
-      container_name: SmartRouting
+      container_name: Optimizer
       build: 
-        context: ./optimization
+        context: ./optimizer
         dockerfile: ./Dockerfile
       networks:
         - sogno_network

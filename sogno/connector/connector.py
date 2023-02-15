@@ -20,7 +20,8 @@ connector_response_topic= os.environ.get('RESPONSE_TOPIC')
 def on_connect(client, userdata, flags, rc):
     print("Connector of "+str(aggregator_id)+" connected with result code "+str(rc))
     client.subscribe(connector_request_topic)
-    print("Subscribed topic:",connector_request_topic)
+    #print("Subscribed topic:",connector_request_topic,len(connector_request_topic))
+    #client.subscribe("test/123")
 
 def on_message(client, userdata, message):
     
