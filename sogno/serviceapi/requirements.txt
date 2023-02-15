@@ -1,7 +1,0 @@
-paho-mqtt
-datetime
-uvicorn
-fastapi
-typing
-requests
-pandas

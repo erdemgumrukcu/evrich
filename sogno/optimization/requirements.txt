@@ -1,6 +1,0 @@
-matplotlib
-numpy
-openpyxl
-pandas
-pyomo
-paho-mqtt
