@@ -96,7 +96,7 @@ async def post_request(item: ClientRequest):
 
         current_time=time.time()
 
-        if current_time-publish_time>=5:
+        if current_time-publish_time>=30:
             break
         else:
             pass
