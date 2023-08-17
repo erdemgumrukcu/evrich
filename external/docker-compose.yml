@@ -1,60 +1,88 @@
-version: "3"
-
 networks:
-  
-  traffic_network:
-    driver: bridge
   aggregator_network:
     driver: bridge
-
+  traffic_network:
+    driver: bridge
 services:
-
+  aggregator1:
+    build:
+      context: ./aggregator
+      dockerfile: ./Dockerfile
+    container_name: aggregator1
+    environment:
+    - CLUSTER_ID=1
+    - IP_ADDRESS=0.0.0.0
+    - PORT_NUMBER=9001
+    - PYTHONUNBUFFERED=1
+    networks:
+    - aggregator_network
+    ports:
+    - 9001:9001
+  aggregator2:
+    build:
+      context: ./aggregator
+      dockerfile: ./Dockerfile
+    container_name: aggregator2
+    environment:
+    - CLUSTER_ID=2
+    - IP_ADDRESS=0.0.0.0
+    - PORT_NUMBER=9002
+    - PYTHONUNBUFFERED=1
+    networks:
+    - aggregator_network
+    ports:
+    - 9002:9002
+  aggregator3:
+    build:
+      context: ./aggregator
+      dockerfile: ./Dockerfile
+    container_name: aggregator3
+    environment:
+    - CLUSTER_ID=3
+    - IP_ADDRESS=0.0.0.0
+    - PORT_NUMBER=9003
+    - PYTHONUNBUFFERED=1
+    networks:
+    - aggregator_network
+    ports:
+    - 9003:9003
+  aggregator4:
+    build:
+      context: ./aggregator
+      dockerfile: ./Dockerfile
+    container_name: aggregator4
+    environment:
+    - CLUSTER_ID=4
+    - IP_ADDRESS=0.0.0.0
+    - PORT_NUMBER=9004
+    - PYTHONUNBUFFERED=1
+    networks:
+    - aggregator_network
+    ports:
+    - 9004:9004
+  aggregator5:
+    build:
+      context: ./aggregator
+      dockerfile: ./Dockerfile
+    container_name: aggregator5
+    environment:
+    - CLUSTER_ID=5
+    - IP_ADDRESS=0.0.0.0
+    - PORT_NUMBER=9005
+    - PYTHONUNBUFFERED=1
+    networks:
+    - aggregator_network
+    ports:
+    - 9005:9005
   trafficapi:
-    container_name: TrafficAPI
-    build: 
+    build:
       context: ./traffic
       dockerfile: ./Dockerfile
-    networks:
-      - traffic_network
-    ports:
-      - 8000:8000
+    container_name: TrafficAPI
     environment:
-      - PYTHONUNBUFFERED=1
-
-  aggregator1:
-    container_name: Aggregator1
-    build: 
-      context: ./aggregator1
-      dockerfile: ./Dockerfile
+    - PYTHONUNBUFFERED=1
     networks:
-      - aggregator_network
+    - traffic_network
     ports:
-      - 9001:9001
-    environment:
-      - PYTHONUNBUFFERED=1
-
-  aggregator2:
-    container_name: Aggregator2
-    build: 
-      context: ./aggregator2
-      dockerfile: ./Dockerfile
-    networks:
-      - aggregator_network
-    ports:
-      - 9002:9002
-    environment:
-      - PYTHONUNBUFFERED=1
-
-  aggregator3:
-    container_name: Aggregator3
-    build: 
-      context: ./aggregator3
-      dockerfile: ./Dockerfile
-    networks:
-      - aggregator_network
-    ports:
-      - 9003:9003
-    environment:
-      - PYTHONUNBUFFERED=1
-
-          
+    - 8000:8000
+version: '3'

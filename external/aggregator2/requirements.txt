@@ -1,5 +1,0 @@
-uvicorn
-fastapi
-typing
-pandas
-datetime

@@ -6,22 +6,22 @@ Created on Mon Dec 19 11:15:39 2022
 """
 
 import paho.mqtt.client as mqtt
-import pandas as pd
-import requests
 import os
+import requests
 import json
 
 # Get environment variables
-aggregator_id           = os.environ.get('CONNECTOR_ID')
-aggregator_url          = os.environ.get('AGGREGATOR_URL')
+aggregator_id = os.environ.get('CONNECTOR_ID')
+aggregator_url = os.environ.get('AGGREGATOR_URL')
 connector_request_topic = os.environ.get('REQUEST_TOPIC')
-connector_response_topic= os.environ.get('RESPONSE_TOPIC')
+connector_response_topic = os.environ.get('RESPONSE_TOPIC')
 
 def on_connect(client, userdata, flags, rc):
-    print("Connector of "+str(aggregator_id)+" connected with result code "+str(rc))
+    print("Connector of " + str(aggregator_id) + " connected with result code " + str(rc))
     client.subscribe(connector_request_topic)
-    #print("Subscribed topic:",connector_request_topic,len(connector_request_topic))
-    #client.subscribe("test/123")
+
+    # Publish the aggregator ID to the controller
+    client.publish("connector_ids", aggregator_id)
 
 def on_message(client, userdata, message):
     
@@ -57,8 +57,8 @@ def on_message(client, userdata, message):
     #print("sent response: ", msg_tosend)
     print("sent response under topic: ", connector_response_topic)
    
-def on_publish(client,userdata,result):
-    print("availability response returned...")   
+def on_publish(client, userdata, result):
+    print("Availability response returned...")   
 
 mqtt_broker_url = os.getenv("MQTT_URL", "gatewaymqtt")
 mqtt_broker_port = int(os.getenv("MQTT_PORT", 1883))
@@ -66,9 +66,9 @@ mqtt_broker_port = int(os.getenv("MQTT_PORT", 1883))
 client = mqtt.Client(aggregator_id)
 
 client.on_connect = on_connect
-client.on_message=on_message
-client.on_publish=on_publish
+client.on_message = on_message
+client.on_publish = on_publish
 
-client.connect(mqtt_broker_url,mqtt_broker_port)
+client.connect(mqtt_broker_url, mqtt_broker_port)
 
 client.loop_forever()

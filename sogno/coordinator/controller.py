@@ -18,10 +18,18 @@ import time
 traffic_service_url= os.environ.get('TRAFFIC_URL')
 
 #TODO: Instead of hard-coding, specify the microservice identifiers as environment variables in docker-compose.yml
-connector_list=['aggregator1','aggregator2','aggregator3']
- 
+#connector_list=['aggregator1','aggregator2','aggregator3']
+
+connector_list = []  # Initialize an empty list for connector IDs
+
 #MQTT handlers   
+
+def on_connector_ids_connect(client, userdata, flags, rc):
+    print("Controller connected to connector IDs topic with result code " + str(rc))
+    client.subscribe("connector_ids")
+
 def on_connect(client, userdata, flags, rc):
+
     print("Controller connected with result code "+str(rc))
     
     #Subscribe to the client request messages coming from the Service API
@@ -45,6 +53,13 @@ def on_connect(client, userdata, flags, rc):
           
 def on_publish(client,userdata,result):
     print("Controller published an MQTT message.")
+
+def on_connector_id_message(client, userdata, msg):
+    global connector_list
+    connector_id = msg.payload.decode("utf-8")
+    if connector_id not in connector_list:
+        connector_list.append(connector_id)
+        print(f"Connector with ID '{connector_id}' has been saved to the connectors list.")
      
 def on_message(client, userdata, msg):
        
@@ -202,12 +217,29 @@ def on_message(client, userdata, msg):
 mqtt_broker_url = os.getenv("MQTT_URL", "gatewaymqtt")
 mqtt_broker_port = int(os.getenv("MQTT_PORT", 1883))
 
+client_connector_ids = mqtt.Client("Controller")
+
+# Create MQTT connection for the Controller and set up subscriber callbacks
+client_connector_ids.on_connect = on_connector_ids_connect
+client_connector_ids.on_message = on_connector_id_message
+client_connector_ids.connect(mqtt_broker_url, mqtt_broker_port)
+
+# Start the loop and begin listening to the "connector_ids" topic
+client_connector_ids.loop_start()
+print("Gathering controller IDs.")
+# Wait for a while to collect Connector IDs
+time.sleep(25)  # Adjust the appropriate time
+
+# End the loop to ensure the Controller's connection is not cut off
+client_connector_ids.loop_stop()
+print("Finished gathering controller IDs.")
+print(connector_list)
+# Create another MQTT connection for the Controller and set up other callbacks
 client = mqtt.Client("Controller")
-
 client.on_connect = on_connect
-client.on_message=on_message
-client.on_publish=on_publish
+client.on_message = on_message
+client.on_publish = on_publish
+client.connect(mqtt_broker_url, mqtt_broker_port)
 
-client.connect(mqtt_broker_url,mqtt_broker_port)
-
+# Start the MQTT loop to listen to Controller messages
 client.loop_forever()
