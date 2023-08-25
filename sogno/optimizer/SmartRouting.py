@@ -4,14 +4,13 @@ Created on Fri Jan 6 09:28:00 2022
 @author: egu
 """
 
-#from routing_milp import smart_routing
+from routing_milp import smart_routing
 from datetime import datetime, timedelta, timezone
-#from pyomo.environ import SolverFactory
+from pyomo.environ import SolverFactory
 import paho.mqtt.client as mqtt
 import json
 import pandas as pd
 import os
-import random
 
 
 def on_connect(client, userdata, flags, rc):
@@ -26,7 +25,7 @@ def on_message(client, userdata, message):
     # print("received request: ", parameters)
 
     # Parsing inputs for smart routing algorithm
-    #solver = SolverFactory("glpk")
+    solver = SolverFactory("glpk")
     opt_step = parameters["opt_step"]  # seconds
     ecap = parameters["ecap"]
     v2gall = parameters["v2gall"]
@@ -88,7 +87,6 @@ def on_message(client, userdata, message):
                 g2v_dps[agg_id][t] = 0.0
                 v2g_dps[agg_id][t] = 0.0
 
-    '''
     # Execution of smart routing algorithm
     p, s, c = smart_routing(
         solver,
@@ -109,10 +107,6 @@ def on_message(client, userdata, message):
         g2v_dps,
         v2g_dps,
     )
-    '''
-    
-    c = random.choice(list(arrtime.keys()))
-
 
     # Formatting the outputs
     response_ = {}
@@ -120,7 +114,6 @@ def on_message(client, userdata, message):
     response_["Charger"] = parameters["candidate_chargers"][c]
     response_["P Schedule"] = {}
     response_["S Schedule"] = {}
-    '''
     for step in sorted(s.keys()):
 
         t = int(step)
@@ -130,7 +123,6 @@ def on_message(client, userdata, message):
         if ts < max(opt_horizon_daterange):
             response_["P Schedule"][time_stamp] = p[step]
         response_["S Schedule"][time_stamp] = s[step]
-    '''
 
     # Send response
     msg_tosend = json.dumps(response_)
