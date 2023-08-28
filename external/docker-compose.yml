@@ -4,25 +4,11 @@ networks:
   traffic_network:
     driver: bridge
 services:
-  aggregator1:
+  aggregator_2:
     build:
       context: ./aggregator
       dockerfile: ./Dockerfile
-    container_name: aggregator1
-    environment:
-    - CLUSTER_ID=1
-    - IP_ADDRESS=0.0.0.0
-    - PORT_NUMBER=9001
-    - PYTHONUNBUFFERED=1
-    networks:
-    - aggregator_network
-    ports:
-    - 9001:9001
-  aggregator2:
-    build:
-      context: ./aggregator
-      dockerfile: ./Dockerfile
-    container_name: aggregator2
+    container_name: aggregator_2
     environment:
     - CLUSTER_ID=2
     - IP_ADDRESS=0.0.0.0
@@ -32,25 +18,11 @@ services:
     - aggregator_network
     ports:
     - 9002:9002
-  aggregator3:
+  aggregator_4:
     build:
       context: ./aggregator
       dockerfile: ./Dockerfile
-    container_name: aggregator3
-    environment:
-    - CLUSTER_ID=3
-    - IP_ADDRESS=0.0.0.0
-    - PORT_NUMBER=9003
-    - PYTHONUNBUFFERED=1
-    networks:
-    - aggregator_network
-    ports:
-    - 9003:9003
-  aggregator4:
-    build:
-      context: ./aggregator
-      dockerfile: ./Dockerfile
-    container_name: aggregator4
+    container_name: aggregator_4
     environment:
     - CLUSTER_ID=4
     - IP_ADDRESS=0.0.0.0
@@ -60,11 +32,11 @@ services:
     - aggregator_network
     ports:
     - 9004:9004
-  aggregator5:
+  aggregator_5:
     build:
       context: ./aggregator
       dockerfile: ./Dockerfile
-    container_name: aggregator5
+    container_name: aggregator_5
     environment:
     - CLUSTER_ID=5
     - IP_ADDRESS=0.0.0.0
@@ -74,6 +46,34 @@ services:
     - aggregator_network
     ports:
     - 9005:9005
+  aggregator_abc:
+    build:
+      context: ./aggregator
+      dockerfile: ./Dockerfile
+    container_name: aggregator_abc
+    environment:
+    - CLUSTER_ID=abc
+    - IP_ADDRESS=0.0.0.0
+    - PORT_NUMBER=9001
+    - PYTHONUNBUFFERED=1
+    networks:
+    - aggregator_network
+    ports:
+    - 9001:9001
+  aggregator_c:
+    build:
+      context: ./aggregator
+      dockerfile: ./Dockerfile
+    container_name: aggregator_c
+    environment:
+    - CLUSTER_ID=c
+    - IP_ADDRESS=0.0.0.0
+    - PORT_NUMBER=9003
+    - PYTHONUNBUFFERED=1
+    networks:
+    - aggregator_network
+    ports:
+    - 9003:9003
   trafficapi:
     build:
       context: ./traffic

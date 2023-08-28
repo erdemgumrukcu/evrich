@@ -20,7 +20,7 @@ services = []
 for _, row in df.iterrows():
     services.append(
         {
-            "container_name": f"aggregator{row['cluster_id']}",
+            "container_name": f"aggregator_{row['cluster_id']}",
             "build": {
                 "context": "./aggregator",
                 "dockerfile": "./Dockerfile"

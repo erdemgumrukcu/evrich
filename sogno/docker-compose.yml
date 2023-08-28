@@ -15,82 +15,82 @@ services:
     - sogno_network
     ports:
     - 7000:7000
-  connector1:
+  connector_2:
     build:
       context: ./connector
       dockerfile: ./Dockerfile
-    container_name: connector1
+    container_name: connector_2
     depends_on:
     - coordinator
     environment:
-    - CONNECTOR_ID=aggregator1
-    - AGGREGATOR_URL=http://host.docker.internal:9001/availability/
-    - REQUEST_TOPIC=availability/request/aggregator1
-    - RESPONSE_TOPIC=availability/response/aggregator1
-    - PYTHONUNBUFFERED=1
-    networks:
-    - sogno_network
-    - external_aggregator_network
-  connector2:
-    build:
-      context: ./connector
-      dockerfile: ./Dockerfile
-    container_name: connector2
-    depends_on:
-    - coordinator
-    environment:
-    - CONNECTOR_ID=aggregator2
+    - CONNECTOR_ID=aggregator_2
     - AGGREGATOR_URL=http://host.docker.internal:9002/availability/
-    - REQUEST_TOPIC=availability/request/aggregator2
-    - RESPONSE_TOPIC=availability/response/aggregator2
+    - REQUEST_TOPIC=availability/request/aggregator_2
+    - RESPONSE_TOPIC=availability/response/aggregator_2
     - PYTHONUNBUFFERED=1
     networks:
     - sogno_network
     - external_aggregator_network
-  connector3:
+  connector_4:
     build:
       context: ./connector
       dockerfile: ./Dockerfile
-    container_name: connector3
+    container_name: connector_4
     depends_on:
     - coordinator
     environment:
-    - CONNECTOR_ID=aggregator3
-    - AGGREGATOR_URL=http://host.docker.internal:9003/availability/
-    - REQUEST_TOPIC=availability/request/aggregator3
-    - RESPONSE_TOPIC=availability/response/aggregator3
-    - PYTHONUNBUFFERED=1
-    networks:
-    - sogno_network
-    - external_aggregator_network
-  connector4:
-    build:
-      context: ./connector
-      dockerfile: ./Dockerfile
-    container_name: connector4
-    depends_on:
-    - coordinator
-    environment:
-    - CONNECTOR_ID=aggregator4
+    - CONNECTOR_ID=aggregator_4
     - AGGREGATOR_URL=http://host.docker.internal:9004/availability/
-    - REQUEST_TOPIC=availability/request/aggregator4
-    - RESPONSE_TOPIC=availability/response/aggregator4
+    - REQUEST_TOPIC=availability/request/aggregator_4
+    - RESPONSE_TOPIC=availability/response/aggregator_4
     - PYTHONUNBUFFERED=1
     networks:
     - sogno_network
     - external_aggregator_network
-  connector5:
+  connector_5:
     build:
       context: ./connector
       dockerfile: ./Dockerfile
-    container_name: connector5
+    container_name: connector_5
     depends_on:
     - coordinator
     environment:
-    - CONNECTOR_ID=aggregator5
+    - CONNECTOR_ID=aggregator_5
     - AGGREGATOR_URL=http://host.docker.internal:9005/availability/
-    - REQUEST_TOPIC=availability/request/aggregator5
-    - RESPONSE_TOPIC=availability/response/aggregator5
+    - REQUEST_TOPIC=availability/request/aggregator_5
+    - RESPONSE_TOPIC=availability/response/aggregator_5
+    - PYTHONUNBUFFERED=1
+    networks:
+    - sogno_network
+    - external_aggregator_network
+  connector_abc:
+    build:
+      context: ./connector
+      dockerfile: ./Dockerfile
+    container_name: connector_abc
+    depends_on:
+    - coordinator
+    environment:
+    - CONNECTOR_ID=aggregator_abc
+    - AGGREGATOR_URL=http://host.docker.internal:9001/availability/
+    - REQUEST_TOPIC=availability/request/aggregator_abc
+    - RESPONSE_TOPIC=availability/response/aggregator_abc
+    - PYTHONUNBUFFERED=1
+    networks:
+    - sogno_network
+    - external_aggregator_network
+  connector_c:
+    build:
+      context: ./connector
+      dockerfile: ./Dockerfile
+    container_name: connector_c
+    depends_on:
+    - coordinator
+    environment:
+    - CONNECTOR_ID=aggregator_c
+    - AGGREGATOR_URL=http://host.docker.internal:9003/availability/
+    - REQUEST_TOPIC=availability/request/aggregator_c
+    - RESPONSE_TOPIC=availability/response/aggregator_c
     - PYTHONUNBUFFERED=1
     networks:
     - sogno_network

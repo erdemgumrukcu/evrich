@@ -14,8 +14,18 @@ df = pd.read_excel(excel_file_path, sheet_name='socket_info')
 # Construct the path to save the generated docker-compose.yml
 output_file_path = os.path.join(script_directory, '../docker-compose.yml')
 
-connector_list = df['cluster_id'].apply(lambda x: f"{x}").tolist()
+# Function to get AGGREGATOR_URL based on cluster_id
+def get_aggregator_url(cluster_id):
+    matching_row = df[df['cluster_id'] == cluster_id] # Find the rows in the Excel input file (DataFrame) where the cluster_id column matches the provided cluster_id value
+    if not matching_row.empty: # If a matching row is found
+        port_number = matching_row.iloc[0]['port_number']
+        return f"http://host.docker.internal:{port_number}/availability/"
+    return ""
 
+# Convert cluster_id to strings to ensure consistency
+df['cluster_id'] = df['cluster_id'].apply(lambda x: str(x))
+
+connector_list = df['cluster_id'].tolist()  # list of container ids in strings
 
 compose_config = {
     "version": "3",
@@ -75,23 +85,28 @@ compose_config = {
 }
 
 for connector in connector_list:
-    service_name = f"connector{connector.lower()}"
-    compose_config["services"][service_name] = {
-        "container_name": f"connector{connector}",
-        "build": {
-            "context": f"./connector",
-            "dockerfile": "./Dockerfile"
-        },
-        "networks": ["sogno_network", "external_aggregator_network"],
-        "depends_on": ["coordinator"],
-        "environment": [
-                f"CONNECTOR_ID=aggregator{connector}",
-                f"AGGREGATOR_URL=http://host.docker.internal:{df[df['cluster_id'] == int(connector[-1])]['port_number'].values[0]}/availability/",  #TODO: This does not yield the port number 
-                f"REQUEST_TOPIC=availability/request/aggregator{connector}",
-                f"RESPONSE_TOPIC=availability/response/aggregator{connector}",
+    service_name = f"connector_{connector.lower()}"
+    aggregator_url = get_aggregator_url(connector)  
+
+    if aggregator_url:
+        compose_config["services"][service_name] = {
+            "container_name": f"connector_{connector}",
+            "build": {
+                "context": f"./connector",
+                "dockerfile": "./Dockerfile"
+            },
+            "networks": ["sogno_network", "external_aggregator_network"],
+            "depends_on": ["coordinator"],
+            "environment": [
+                f"CONNECTOR_ID=aggregator_{connector}",
+                f"AGGREGATOR_URL={aggregator_url}",
+                f"REQUEST_TOPIC=availability/request/aggregator_{connector}",
+                f"RESPONSE_TOPIC=availability/response/aggregator_{connector}",
                 "PYTHONUNBUFFERED=1"
             ]
-    }
+        }
+
+
 
 # Save the YAML configuration to the output file
 with open(output_file_path, 'w') as f:
