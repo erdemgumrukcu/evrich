@@ -117,8 +117,9 @@ async def request_charging_offer(item: AvailabiltiyRequest):
     response['max_energy_supply']=min(p_ch*parking_duration,ev_energy_demand) #kWs
     response['dps_g2v'] = dict([(k, dlp[k]) for k in sorted(dlp.keys())])
     response['dps_v2g'] = dict([(k, dlp[k] * (1 - arbitrage_coeff)) for k in sorted(dlp.keys())])
+    
     # ###########################################################################
     
-    #print("Response sent")
+    print("Response sent to EMO:",response)
                
     return response
