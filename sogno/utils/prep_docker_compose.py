@@ -16,6 +16,7 @@ output_file_path = os.path.join(script_directory, '../docker-compose.yml')
 
 connector_list = df['cluster_id'].apply(lambda x: f"{x}").tolist()
 
+
 compose_config = {
     "version": "3",
     "networks": {
@@ -45,7 +46,7 @@ compose_config = {
                 "dockerfile": "./Dockerfile"
             },
             "networks": ["sogno_network"],
-            "ports": ["7000:7000"]
+            "ports": ["7000:7000"]          #TODO: It should be user defined
         },
         "coordinator": {
             "container_name": "coordinator",
@@ -55,7 +56,7 @@ compose_config = {
             },
             "networks": ["sogno_network", "external_traffic_network"],
             "environment": [
-                "TRAFFIC_URL=http://host.docker.internal:8000/trafficforecast/",
+                "TRAFFIC_URL=http://host.docker.internal:8000/trafficforecast/", #TODO: It should be user defined
                 "PYTHONUNBUFFERED=1"
             ],
         },
@@ -85,7 +86,7 @@ for connector in connector_list:
         "depends_on": ["coordinator"],
         "environment": [
                 f"CONNECTOR_ID=aggregator{connector}",
-                f"AGGREGATOR_URL=http://host.docker.internal:{df[df['cluster_id'] == int(connector[-1])]['port_number'].values[0]}/availability/",
+                f"AGGREGATOR_URL=http://host.docker.internal:{df[df['cluster_id'] == int(connector[-1])]['port_number'].values[0]}/availability/",  #TODO: This does not yield the port number 
                 f"REQUEST_TOPIC=availability/request/aggregator{connector}",
                 f"RESPONSE_TOPIC=availability/response/aggregator{connector}",
                 "PYTHONUNBUFFERED=1"
