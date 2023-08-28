@@ -16,6 +16,7 @@ output_file_path = os.path.join(script_directory, '../docker-compose.yml')
 
 services = []
 
+#TODO: Comment each block
 for _, row in df.iterrows():
     services.append(
         {
@@ -60,7 +61,7 @@ compose_config = {
                 "traffic_network"
             ],
             "ports": [
-                "8000:8000"
+                "8000:8000" #TODO: Traffic API should be a user parameter
             ],
             "environment": [
                 "PYTHONUNBUFFERED=1"
