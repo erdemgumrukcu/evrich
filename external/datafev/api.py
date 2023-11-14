@@ -261,35 +261,39 @@ async def synchronizer(charge_request: SynchronizeRequest):
         if ev.t_arr_real == ts:
             cluster_id = ev.cluster_target
             available_chargers_dict = system.clusters[cluster_id].query_availability(ev.t_arr_real, ev.t_dep_real, step)
-            # If there are no available chargers return None
+
             if available_chargers_dict.empty:
-                print("There are no available chargers in the cluster",cluster_id, "for EV", ev.vehicle_id, ". EV", ev.vehicle_id, "could not be admitted to the system.")
+                print(f"There are no available chargers in the cluster {cluster_id} for EV {ev.vehicle_id}. EV {ev.vehicle_id} could not be admitted to the system.")
                 # TODO: Re-routing
             else:
-                available_chargers=(pd.DataFrame(available_chargers_dict))
+                available_chargers = pd.DataFrame(available_chargers_dict)
                 parking_duration = ev.t_dep_real - ev.t_arr_real
                 charging_demand_limited_by_target_SOC = (ev.soc_tar_at_t_dep_est - ev.soc_arr_real) * ev.bCapacity
                 charging_demand_limited_by_pow_limit = ev.p_max_ch * parking_duration.total_seconds()
                 ev_energy_demand = min(charging_demand_limited_by_target_SOC, charging_demand_limited_by_pow_limit)
                 energy_supply_by_chargers = available_chargers["max p_ch"] * parking_duration.total_seconds()
                 chargers_with_sufficient_supply_rating = energy_supply_by_chargers[energy_supply_by_chargers >= ev_energy_demand]
+
                 if len(chargers_with_sufficient_supply_rating):
-                    selected_charger_id=chargers_with_sufficient_supply_rating.idxmin()
+                    selected_charger_id = chargers_with_sufficient_supply_rating.idxmin()
                 else:
-                    selected_charger_id=available_chargers["max p_ch"].idxmax()
+                    selected_charger_id = available_chargers["max p_ch"].idxmax()
+
                 cluster = system.clusters[cluster_id]
                 selected_charger = cluster.chargers[selected_charger_id]
                 # Reserve charger for the EV arrived in ts
                 cluster.reserve(ev.t_arr_real, ev.t_dep_real, ev, selected_charger)
                 fleet.incoming_at[ev.t_arr_real].append(ev)
                 fleet.outgoing_at[ev.t_dep_real].append(ev)
-                print("EV", ev.vehicle_id, "is connected to charger", selected_charger_id, "in cluster", cluster_id, '.')
-                # Calculating p_schedule and s_schedule
+                print(f"EV {ev.vehicle_id} is connected to charger {selected_charger_id} in cluster {cluster_id}.")
+
                 # Create and update p_schedule and s_schedule for the EV
                 time_index = pd.date_range(ev.t_arr_real, ev.t_dep_real, freq=step)
                 p_schedule = pd.Series(0, index=time_index)
-                s_schedule = pd.Series(ev.soc_arr_real, index=time_index)
-                for i, ts_ in enumerate(time_index):
+                s_schedule = pd.Series(0, index=time_index)
+                s_schedule.at[ts - step] = ev.soc_arr_real
+
+                for ts_ in time_index:
                     # Calculate the charging power
                     charging_power = min(selected_charger.p_max_ch, ev.p_max_ch)
 
@@ -297,18 +301,20 @@ async def synchronizer(charge_request: SynchronizeRequest):
                     p_schedule.at[ts_] = charging_power
 
                     # Update s_schedule with SOC changes due to charging
-                    if i > 0:  # Skip the first step for s_schedule.at[ts_] since it's already set
-                        soc_changes = charging_power / (ev.bCapacity * 3600)  # Assuming bCapacity is in kWh
-                        s_schedule.at[ts_] = s_schedule.at[ts_ - step] + soc_changes
-                    else:
-                        s_schedule.at[ts_] = ev.soc_arr_real
+                    soc_changes = (charging_power / ev.bCapacity) * step.total_seconds()
+                    s_schedule.at[ts_] = s_schedule.at[ts_ - step] + soc_changes
 
                     # Check if desired SOC is reached and stop charging
-                    if ts_ == ev.t_dep_real and s_schedule.at[ts_] >= ev.soc_tar_at_t_dep_est:
-                        # Stop charging beyond the desired SOC
-                        p_schedule.at[ts_:] = 0
-                        break  # Break the loop as charging is complete for this EV
-
+                    if s_schedule.at[ts_] >= ev.soc_tar_at_t_dep_est:
+                        # Stop charging beyond the desired SoC
+                        # Calculate energy needed to reach desired SoC level
+                        soc_diff = ev.soc_tar_at_t_dep_est - s_schedule.at[ts_-step]
+                        energy_diff = soc_diff * ev.bCapacity
+                        p_schedule.loc[ts_] = energy_diff / step.total_seconds()
+                        p_schedule.loc[ts_+step:] = 0
+                        s_schedule.loc[ts_:] = ev.soc_tar_at_t_dep_est
+                        break  # Break the loop as charging is complete for this EV           
+                
                 selected_charger.set_schedule(ts, p_schedule, s_schedule)
 
     #####################################################################################################################################        
@@ -375,8 +381,9 @@ async def synchronizer(charge_request: SynchronizeRequest):
             for cu_id in system.clusters[cc_id].chargers.keys():
                 cu = system.clusters[cc_id].chargers[cu_id]
                 if cu.connected_ev != None:
+                    print('Charging', cu.connected_ev, 'with', cu_id)
                     cu.supply(ts, step, cu.schedule_pow[cu.active_schedule_instance][ts])
 
     #####################################################################################################################################
-
+    
     return {"message": "Synchronization done"}

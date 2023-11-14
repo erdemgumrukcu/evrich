@@ -49,6 +49,11 @@ services:
     container_name: datafev
     environment:
     - PYTHONUNBUFFERED=1
+    - MYSQL_HOST=mysql
+    - MYSQL_PORT=3306
+    - MYSQL_USER=root
+    - MYSQL_PASSWORD=root
+    - MYSQL_DB=mydatabase
     networks:
     - external_network
     ports:
@@ -79,4 +84,15 @@ services:
     - traffic_network
     ports:
     - 8000:8000
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=mydatabase
+    ports:
+      - 3306:3306
+    networks:
+      - external_network  
 version: '3'
+
