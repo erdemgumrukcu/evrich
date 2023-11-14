@@ -1,79 +1,73 @@
 networks:
   aggregator_network:
     driver: bridge
+  external_network:
+    driver: bridge
   traffic_network:
     driver: bridge
 services:
+  aggregator_1:
+    build:
+      context: ./aggregator
+      dockerfile: ./Dockerfile
+    container_name: aggregator_1
+    depends_on:
+    - datafev
+    environment:
+    - CLUSTER_ID=1
+    - IP_ADDRESS=0.0.0.0
+    - PORT_NUMBER=9001
+    - PYTHONUNBUFFERED=1
+    - DATAFEV_CHARGER_SELECTION_URL=http://host.docker.internal:9004/charger_selection/
+    - DATAFEV_RESERVATION_URL=http://host.docker.internal:9004/reservation/
+    networks:
+    - aggregator_network
+    ports:
+    - 9001:9001
   aggregator_2:
     build:
       context: ./aggregator
       dockerfile: ./Dockerfile
     container_name: aggregator_2
+    depends_on:
+    - datafev
     environment:
     - CLUSTER_ID=2
     - IP_ADDRESS=0.0.0.0
     - PORT_NUMBER=9002
     - PYTHONUNBUFFERED=1
+    - DATAFEV_CHARGER_SELECTION_URL=http://host.docker.internal:9004/charger_selection/
+    - DATAFEV_RESERVATION_URL=http://host.docker.internal:9004/reservation/
     networks:
     - aggregator_network
     ports:
     - 9002:9002
-  aggregator_4:
+  datafev:
     build:
-      context: ./aggregator
+      context: ./datafev
       dockerfile: ./Dockerfile
-    container_name: aggregator_4
+    container_name: datafev
     environment:
-    - CLUSTER_ID=4
-    - IP_ADDRESS=0.0.0.0
-    - PORT_NUMBER=9004
     - PYTHONUNBUFFERED=1
     networks:
-    - aggregator_network
+    - external_network
     ports:
     - 9004:9004
-  aggregator_5:
+  event_manager:
     build:
-      context: ./aggregator
+      context: ./event_manager
       dockerfile: ./Dockerfile
-    container_name: aggregator_5
+    container_name: event_manager
+    depends_on:
+    - datafev
     environment:
-    - CLUSTER_ID=5
-    - IP_ADDRESS=0.0.0.0
-    - PORT_NUMBER=9005
+    - SERVICE_API_URL=http://host.docker.internal:7000/routing/post_request_type1/
+    - DATAFEV_INIT_URL=http://host.docker.internal:9004/datafev_init/
+    - DATAFEV_GET_REQUEST_COUNTER_URL=http://host.docker.internal:9004/get_request_counter/
+    - DATAFEV_SYNCHRONIZE_URL=http://host.docker.internal:9004/synchronize/
     - PYTHONUNBUFFERED=1
     networks:
-    - aggregator_network
-    ports:
-    - 9005:9005
-  aggregator_abc:
-    build:
-      context: ./aggregator
-      dockerfile: ./Dockerfile
-    container_name: aggregator_abc
-    environment:
-    - CLUSTER_ID=abc
-    - IP_ADDRESS=0.0.0.0
-    - PORT_NUMBER=9001
-    - PYTHONUNBUFFERED=1
-    networks:
-    - aggregator_network
-    ports:
-    - 9001:9001
-  aggregator_c:
-    build:
-      context: ./aggregator
-      dockerfile: ./Dockerfile
-    container_name: aggregator_c
-    environment:
-    - CLUSTER_ID=c
-    - IP_ADDRESS=0.0.0.0
-    - PORT_NUMBER=9003
-    - PYTHONUNBUFFERED=1
-    networks:
-    - aggregator_network
-    ports:
-    - 9003:9003
+    - external_network
   trafficapi:
     build:
       context: ./traffic

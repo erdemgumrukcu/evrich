@@ -3,3 +3,4 @@ fastapi
 typing
 pandas
 datetime
+requests

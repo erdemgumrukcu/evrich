@@ -9,17 +9,25 @@ script_directory = os.path.dirname(os.path.abspath(__file__))
 excel_file_path = os.path.join(script_directory, './aggregator_info.xlsx')
 
 # Read the Excel file
-df = pd.read_excel(excel_file_path, sheet_name='socket_info')
+df = pd.read_excel(excel_file_path, sheet_name='SocketInfo')
 
 # Construct the path to save the generated docker-compose.yml
 output_file_path = os.path.join(script_directory, '../docker-compose.yml')
 
-# Function to get AGGREGATOR_URL based on cluster_id
-def get_aggregator_url(cluster_id):
+# Function to get AGGREGATOR_AVAILABILITY_URL based on cluster_id
+def get_aggregator_availability_url(cluster_id):
     matching_row = df[df['cluster_id'] == cluster_id] # Find the rows in the Excel input file (DataFrame) where the cluster_id column matches the provided cluster_id value
     if not matching_row.empty: # If a matching row is found
         port_number = matching_row.iloc[0]['port_number']
         return f"http://host.docker.internal:{port_number}/availability/"
+    return ""
+
+# Function to get AGGREGATOR_SCHEDULE_URL based on cluster_id
+def get_aggregator_schedule_url(cluster_id):
+    matching_row = df[df['cluster_id'] == cluster_id] # Find the rows in the Excel input file (DataFrame) where the cluster_id column matches the provided cluster_id value
+    if not matching_row.empty: # If a matching row is found
+        port_number = matching_row.iloc[0]['port_number']
+        return f"http://host.docker.internal:{port_number}/schedule/"
     return ""
 
 # Convert cluster_id to strings to ensure consistency
@@ -86,9 +94,10 @@ compose_config = {
 
 for connector in connector_list:
     service_name = f"connector_{connector.lower()}"
-    aggregator_url = get_aggregator_url(connector)  
+    aggregator_availability_url = get_aggregator_availability_url(connector) 
+    aggregator_schedule_url = get_aggregator_schedule_url(connector) 
 
-    if aggregator_url:
+    if aggregator_availability_url:
         compose_config["services"][service_name] = {
             "container_name": f"connector_{connector}",
             "build": {
@@ -99,7 +108,8 @@ for connector in connector_list:
             "depends_on": ["coordinator"],
             "environment": [
                 f"CONNECTOR_ID=aggregator_{connector}",
-                f"AGGREGATOR_URL={aggregator_url}",
+                f"AGGREGATOR_AVAILABILITY_URL={aggregator_availability_url}",
+                f"AGGREGATOR_SCHEDULE_URL={aggregator_schedule_url}",
                 f"REQUEST_TOPIC=availability/request/aggregator_{connector}",
                 f"RESPONSE_TOPIC=availability/response/aggregator_{connector}",
                 "PYTHONUNBUFFERED=1"

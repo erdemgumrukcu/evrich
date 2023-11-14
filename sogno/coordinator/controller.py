@@ -17,13 +17,9 @@ import time
 # Get environment variables
 traffic_service_url= os.environ.get('TRAFFIC_URL')
 
-#TODO: Instead of hard-coding, specify the microservice identifiers as environment variables in docker-compose.yml
-#connector_list=['aggregator1','aggregator2','aggregator3']
-
 connector_list = []  # Initialize an empty list for connector IDs
 
 #MQTT handlers   
-
 def on_connector_ids_connect(client, userdata, flags, rc):
     print("Controller connected to connector IDs topic with result code " + str(rc))
     client.subscribe("connector_ids")
@@ -50,9 +46,6 @@ def on_connect(client, userdata, flags, rc):
         availability_request_topics[connector_name]='availability/request/'+connector_name
         availability_response_topics[connector_name]='availability/response/'+connector_name
         client.subscribe(availability_response_topics[connector_name])
-          
-def on_publish(client,userdata,result):
-    print("Controller published an MQTT message.")
 
 def on_connector_id_message(client, userdata, msg):
     global connector_list
@@ -73,6 +66,7 @@ def on_message(client, userdata, msg):
             print("Controller recieved a routing request of Type1")
             global ev_client_request
             ev_client_request=json.loads(msg.payload)
+            print(ev_client_request)
 
             #Setting global parameters which will be populated through on_message callbacks
             global availability
@@ -95,7 +89,6 @@ def on_message(client, userdata, msg):
             #TODO: More sophisticated filtering based on sojourn_location_center and sojourn_location_radius
             traffic_service_request['candidate_hosts']=connector_list 
             print("Sending an HTTP request to the external traffic service:")
-            #print(traffic_service_request)
             traffic_servive_response_=requests.post(traffic_service_url, json = traffic_service_request)
             traffic_servive_response=traffic_servive_response_.json()
             print("The received traffic response:")
@@ -138,7 +131,7 @@ def on_message(client, userdata, msg):
                 charging_demand_limited_by_target_SOC=((ev_client_request['demand_target_SOC']-opt_parameters['arrsoc'][agg_id])*ev_client_request['battery_energy_capacity'])*3600
                 charging_demand_limited_by_pow_limit =ev_client_request['battery_power_charging']*ev_client_request['sojourn_period']
                 inputs_for_availability_query['energy_demand']=min(charging_demand_limited_by_target_SOC,charging_demand_limited_by_pow_limit)
-                
+
                 mqtt_topic=availability_request_topics[agg_id]
                 message_payload=json.dumps(inputs_for_availability_query)        
             
@@ -154,18 +147,20 @@ def on_message(client, userdata, msg):
         agg_id=_topic[2]
         message_loaded= json.loads(msg.payload)
         
-        print("Availability response received from",agg_id)       
+        print("Availability response received from", agg_id, ".")       
         availability[agg_id]=message_loaded
-
-        agg_response=availability[agg_id]
-        
-        opt_parameters['p_ch'][agg_id]=min(agg_response['p_ch_max'],ev_client_request['battery_power_charging'])
-        opt_parameters['p_ds'][agg_id]=min(agg_response['p_ds_max'],ev_client_request['battery_power_discharge'])
-        opt_parameters['dps_g2v'][agg_id]=agg_response['dps_g2v']
-        opt_parameters['dps_v2g'][agg_id]=agg_response['dps_v2g']
-        opt_parameters['candidate_chargers'][agg_id]=agg_response['charger_id']
-                
-        #TODO: Add a timer check to continue process even if not all connectors return reply
+        if availability[agg_id] is not None:
+            agg_response=availability[agg_id]
+            
+            opt_parameters['p_ch'][agg_id]=min(agg_response['p_ch_max'],ev_client_request['battery_power_charging'])
+            opt_parameters['p_ds'][agg_id]=min(agg_response['p_ds_max'],ev_client_request['battery_power_discharge'])
+            opt_parameters['dps_g2v'][agg_id]=agg_response['dps_g2v']
+            opt_parameters['dps_v2g'][agg_id]=agg_response['dps_v2g']
+            opt_parameters['candidate_chargers'][agg_id]=agg_response['charger_id']
+                    
+        # Timer check to continue process even if not all connectors return reply
+        # TODO: Wait 5-10-15 secs if its not equal --> calculate with data received till now
+        # TODO: Take this logic to datafev, add todos there (delay control)
         if len(availability)==len(connector_list): 
 
             #Target SOC is the maximum achievable SOC under the given options
@@ -183,7 +178,9 @@ def on_message(client, userdata, msg):
             routing_optimization_parameters=json.dumps(opt_parameters)
             
             #Execution of routing microservice
-            client.publish("routing/request/emo",routing_optimization_parameters) 
+            client.publish("routing/request/emo",routing_optimization_parameters)
+            print("Controller published a routing/request/emo MQTT message.")
+
 
     elif _topic[:2]==['routing','response']:
         
@@ -196,16 +193,26 @@ def on_message(client, userdata, msg):
         response_to_ev={}
         response_to_ev['Charger']   =message_loaded['Charger']
         response_to_ev['Aggregator']=message_loaded['Aggregator']
-        routing_outputs_to_ev=json.dumps(response_to_ev)
+        response_to_ev_json=json.dumps(response_to_ev)
        
         #Publish the Type1 response to be read by the API and directed to the EV client
-        client.publish("client/response/type1",routing_outputs_to_ev)
+        client.publish("client/response/type1",response_to_ev_json)
+        print("Controller published a client/response/type1 MQTT message.")
+
         
         #TODO: Publish routing response for the Connector microservices
-        #response_to_ag={}
-        #response_to_ag['P Schedule']=message_loaded['P Schedule']
-        #response_to_ag['S Schedule']=message_loaded['S Schedule']
+        for agg_id in connector_list:
+            aggregator_id = message_loaded['Aggregator']
+            # Send response just to selected aggregator
+            if agg_id == aggregator_id:
+                response_to_ag = message_loaded  # Prepare the response to the aggregator's connector
+                response_to_ag['VehicleID'] = ev_client_request['vehicle_id'] 
+                response_to_ag_json = json.dumps(response_to_ag)
+                response_topic = f"response_to_{aggregator_id}"
+                client.publish(response_topic, response_to_ag_json)
+                print("Controller published a ", response_topic, " MQTT message.")
 
+    
         del availability
         del ev_client_request
         del opt_parameters
@@ -228,7 +235,7 @@ client_connector_ids.connect(mqtt_broker_url, mqtt_broker_port)
 client_connector_ids.loop_start()
 print("Gathering controller IDs.")
 # Wait for a while to collect Connector IDs
-time.sleep(25)  # Adjust the appropriate time
+time.sleep(5)  # Adjust the appropriate time
 
 # End the loop to ensure the Controller's connection is not cut off
 client_connector_ids.loop_stop()
@@ -238,7 +245,6 @@ print(connector_list)
 client = mqtt.Client("Controller")
 client.on_connect = on_connect
 client.on_message = on_message
-client.on_publish = on_publish
 client.connect(mqtt_broker_url, mqtt_broker_port)
 
 # Start the MQTT loop to listen to Controller messages

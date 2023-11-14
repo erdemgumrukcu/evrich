@@ -24,6 +24,7 @@ app = FastAPI()
 @app.post("/trafficforecast/")
 async def provide_forecast(item: TFRequest):
     
+    print('Received trafficforecast request from the coordinator.')
     response={}
     
     for aggregator in item.candidate_hosts:
@@ -33,11 +34,10 @@ async def provide_forecast(item: TFRequest):
         response[aggregator]={}
         response[aggregator]['estimate_arrival_SOC']=item.drive_start_SOC
         
-        if aggregator=='aggregator1':
+        if aggregator=='aggregator_5':
             response[aggregator]['estimate_arrival_time']=item.drive_start_time+300
         else:
             response[aggregator]['estimate_arrival_time']=item.drive_start_time
          
-    print(item)
-    print(response)
+    print('Sending trafficforecast response to the coordinator.')
     return response

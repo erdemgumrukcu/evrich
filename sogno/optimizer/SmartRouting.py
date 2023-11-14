@@ -112,8 +112,8 @@ def on_message(client, userdata, message):
     response_ = {}
     response_["Aggregator"] = c
     response_["Charger"] = parameters["candidate_chargers"][c]
-    response_["P Schedule"] = {}
-    response_["S Schedule"] = {}
+    response_["P_Schedule"] = {}
+    response_["S_Schedule"] = {}
     for step in sorted(s.keys()):
 
         t = int(step)
@@ -121,14 +121,12 @@ def on_message(client, userdata, message):
         time_stamp = str(ts)
 
         if ts < max(opt_horizon_daterange):
-            response_["P Schedule"][time_stamp] = p[step]
-        response_["S Schedule"][time_stamp] = s[step]
+            response_["P_Schedule"][time_stamp] = p[step]
+        response_["S_Schedule"][time_stamp] = s[step]
 
     # Send response
     msg_tosend = json.dumps(response_)
     client.publish("routing/response/emo", msg_tosend)
-
-    print("sent response: ", response_)
 
 
 def on_publish(client, userdata, result):

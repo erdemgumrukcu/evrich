@@ -32,11 +32,16 @@ for _, row in df.iterrows():
                 f"CLUSTER_ID={row['cluster_id']}",
                 f"IP_ADDRESS={row['ip_address']}",
                 f"PORT_NUMBER={row['port_number']}",
-                "PYTHONUNBUFFERED=1"
+                "PYTHONUNBUFFERED=1",
+                "DATAFEV_CHARGER_SELECTION_URL=http://host.docker.internal:9004/charger_selection/",
+                "DATAFEV_RESERVATION_URL=http://host.docker.internal:9004/reservation/"
             ],
             "ports": [
                 f"{row['port_number']}:{row['port_number']}"
             ],
+            "depends_on": [
+                "datafev"
+            ]
         }
     )
 
@@ -47,6 +52,9 @@ compose_config = {
             "driver": "bridge"
         },
         "aggregator_network": {
+            "driver": "bridge"
+        },
+        "external_network": {
             "driver": "bridge"
         }
     },
@@ -62,6 +70,42 @@ compose_config = {
             ],
             "ports": [
                 "8000:8000" #TODO: Traffic API should be a user parameter
+            ],
+            "environment": [
+                "PYTHONUNBUFFERED=1"
+            ]
+        },
+        "event_manager": {
+            "container_name": "event_manager",
+            "build": {
+                "context": "./event_manager",
+                "dockerfile": "./Dockerfile"
+            },
+            "networks": [
+                "external_network"
+            ],
+            "environment": [
+                "SERVICE_API_URL=http://host.docker.internal:7000/routing/post_request_type1/",
+                "DATAFEV_INIT_URL=http://host.docker.internal:9004/datafev_init/",
+                "DATAFEV_GET_REQUEST_COUNTER_URL=http://host.docker.internal:9004/get_request_counter/",
+                "DATAFEV_SYNCHRONIZE_URL=http://host.docker.internal:9004/synchronize/",
+                "PYTHONUNBUFFERED=1"
+            ],
+            "depends_on": [
+                "datafev"
+            ]
+        },
+        "datafev": {
+            "container_name": "datafev",
+            "build": {
+                "context": "./datafev",
+                "dockerfile": "./Dockerfile"
+            },
+            "networks": [
+                "external_network"
+            ],
+            "ports": [
+                "9004:9004" #TODO: datafev port should be a user parameter
             ],
             "environment": [
                 "PYTHONUNBUFFERED=1"
