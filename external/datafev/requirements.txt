@@ -5,3 +5,7 @@ numpy
 pandas
 openpyxl
 matplotlib
+mysql-connector-python
+pymysql
+cryptography
+sqlalchemy

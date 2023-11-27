@@ -18,6 +18,7 @@
 # COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+import pandas as pd
 
 class ElectricVehicle(object):
     """
@@ -80,6 +81,13 @@ class ElectricVehicle(object):
         self.soc = {}
         self.v2g = {}
         self.g2v = {}
+
+        self.connected_cu = None
+        self.connected_cc = None
+
+        # Initialize an empty DataFrame for the Database
+        columns = ['timestamp', 'soc', 'g2v', 'v2g', 'admission']
+        self.databank_df = pd.DataFrame(columns=columns)
 
     def charge(self, ts, tdelta, p_in):
         """

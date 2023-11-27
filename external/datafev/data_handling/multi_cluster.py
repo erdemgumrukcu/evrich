@@ -23,6 +23,7 @@ from itertools import product
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import mysql.connector
 
 
 class MultiClusterSystem(object):
@@ -50,6 +51,9 @@ class MultiClusterSystem(object):
         self.type = "CS"
         self.id = system_id
         self.clusters = {}
+
+        # Initialize an empty DataFrame for the Database
+        self.databank_df = pd.DataFrame()
 
     def add_cc(self, cluster):
         """
@@ -328,7 +332,7 @@ class MultiClusterSystem(object):
             overall.loc["Total"] = overall.sum()
             overall.to_excel(writer, sheet_name="Overall")
 
-    def visualize_cluster_loading(self, start, end, step):
+    def visualize_cluster_loading(self, start, end, step, output_filepath=None):
         """
         This method is run after simulation to plot the aggregate power
         consumption profiles of the clusters as well as the power consumption
@@ -393,10 +397,14 @@ class MultiClusterSystem(object):
 
             ax[n - 1].legend(loc="best")
             ax[n - 1].set_xlabel("Time")
+        
+        # Save the figure if output_filepath is provided
+        if output_filepath:
+            fig.savefig(output_filepath)
 
         return fig
 
-    def visualize_cluster_occupation(self, start, end, step):
+    def visualize_cluster_occupation(self, start, end, step, output_filepath=None):
         """
         This method is run after simulation to plot the occupation profiles 
         of the clusters in the multi-cluster system.
@@ -442,10 +450,14 @@ class MultiClusterSystem(object):
                 n += 1
 
             ax[n - 1].set_xlabel("Time")
+        
+        # Save the figure if output_filepath is provided
+        if output_filepath:
+            fig.savefig(output_filepath)
 
         return fig
 
-    def visualize_fulfillment_rates(self, fleet):
+    def visualize_fulfillment_rates(self, fleet, output_filepath):
         """
         This method is run after simulation to plot the fulfillment rates in three performance metrics:
             - Real/scheduled parking duration,
@@ -522,4 +534,9 @@ class MultiClusterSystem(object):
         pd.plotting.parallel_coordinates(datasets, "Cluster", ax=ax)
         ax.legend(loc="best")
 
+        # Save the figure if output_filepath is provided
+        if output_filepath:
+            fig.savefig(output_filepath)
+
         return fig
+    

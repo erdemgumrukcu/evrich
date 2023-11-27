@@ -10,7 +10,8 @@ from pydantic import BaseModel
 from fastapi import FastAPI
 
 class TFRequest(BaseModel):
-       
+
+    vehicle_id: str   
     vehicle_model: str
     battery_energy_capacity: float
     drive_start_location: Union[str,None]=None
@@ -34,8 +35,11 @@ async def provide_forecast(item: TFRequest):
         response[aggregator]={}
         response[aggregator]['estimate_arrival_SOC']=item.drive_start_SOC
         
-        if aggregator=='aggregator_5':
-            response[aggregator]['estimate_arrival_time']=item.drive_start_time+300
+        if aggregator=='aggregator_2':
+            if item.vehicle_id == 'ev001':
+                response[aggregator]['estimate_arrival_time']=item.drive_start_time+1500
+            else:
+                response[aggregator]['estimate_arrival_time']=item.drive_start_time
         else:
             response[aggregator]['estimate_arrival_time']=item.drive_start_time
          

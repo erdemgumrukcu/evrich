@@ -1,13 +1,114 @@
 from typing import Dict, Any
+import os
 import pandas as pd
 from fastapi import FastAPI
 from pydantic import BaseModel
 from datetime import datetime, timedelta
+import pymysql
+from sqlalchemy import create_engine
 from data_handling.pricing_rule import idp
 from data_handling.cluster import ChargerCluster
 from data_handling.multi_cluster import MultiClusterSystem
 from data_handling.fleet import EVFleet
 
+'''
+def reset_mysql_database(host, user, password, db_name):
+    """
+    Resets a MySQL database by dropping it if it exists and creating a new one.
+
+    Parameters
+    ----------
+    host : str
+        The host address of the MySQL server.
+    user : str
+        The username to authenticate to the MySQL server.
+    password : str
+        The password to authenticate to the MySQL server.
+    db_name : str
+        The name of the MySQL database to be reset.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    pymysql.err.OperationalError
+        If there is an issue with MySQL operations.
+
+    Example
+    -------
+    >>> reset_mysql_database('localhost', 'root', 'root', 'mydatabase')
+    """
+
+    # Connect to MySQL
+    connection = pymysql.connect(
+        host=host,
+        user=user,
+        password=password,
+        charset='utf8mb4',
+        cursorclass=pymysql.cursors.DictCursor
+    )
+
+    try:
+        with connection.cursor() as cursor:
+            # Drop the database if it exists
+            cursor.execute(f"DROP DATABASE IF EXISTS {db_name}")
+            # Create a new database
+            cursor.execute(f"CREATE DATABASE {db_name}")
+    finally:
+        connection.close()
+
+# Get environment MySQL variables
+mysql_host = os.environ.get('MYSQL_HOST')
+mysql_port = os.environ.get('MYSQL_PORT')
+mysql_user = os.environ.get('MYSQL_USER')
+mysql_password = os.environ.get('MYSQL_PASSWORD')
+mysql_database = os.environ.get('MYSQL_DB')
+
+# Reset MySQL Database for re-usage
+reset_mysql_database(mysql_host, mysql_user, mysql_password, mysql_database)
+'''
+'''
+# Define the date and time strings
+date_string1 = "01/08/2022 07:05:00"
+date_string2 = "01/08/2022 07:10:00"
+date_string3 = "01/08/2022 07:15:00"
+date_string4 = "01/08/2022 07:20:00"
+date_string5 = "01/08/2022 07:25:00"
+date_string6 = "01/08/2022 07:30:00"
+date_string7 = "01/08/2022 07:35:00"
+date_string8 = "01/08/2022 07:40:00"
+
+# Create datetime objects from the strings
+dt1 = datetime.strptime(date_string1, "%m/%d/%Y %H:%M:%S")
+dt2 = datetime.strptime(date_string2, "%m/%d/%Y %H:%M:%S")
+dt3 = datetime.strptime(date_string3, "%m/%d/%Y %H:%M:%S")
+dt4 = datetime.strptime(date_string4, "%m/%d/%Y %H:%M:%S")
+dt5 = datetime.strptime(date_string5, "%m/%d/%Y %H:%M:%S")
+dt6 = datetime.strptime(date_string6, "%m/%d/%Y %H:%M:%S")
+dt7 = datetime.strptime(date_string7, "%m/%d/%Y %H:%M:%S")
+dt8 = datetime.strptime(date_string8, "%m/%d/%Y %H:%M:%S")
+
+# Get the Unix timestamps
+timestamp1 = int(dt1.timestamp())
+timestamp2 = int(dt2.timestamp())
+timestamp3 = int(dt3.timestamp())
+timestamp4 = int(dt4.timestamp())
+timestamp5 = int(dt5.timestamp())
+timestamp6 = int(dt6.timestamp())
+timestamp7 = int(dt7.timestamp())
+timestamp8 = int(dt8.timestamp())
+
+print("Unix timestamp for 01/08/2022 07:05:00:", timestamp1)
+print("Unix timestamp for 01/08/2022 07:10:00:", timestamp2)
+print("Unix timestamp for 01/08/2022 07:15:00:", timestamp3)
+print("Unix timestamp for 01/08/2022 07:20:00:", timestamp4)
+print("Unix timestamp for 01/08/2022 07:25:00:", timestamp5)
+print("Unix timestamp for 01/08/2022 07:30:00:", timestamp6)
+print("Unix timestamp for 01/08/2022 07:35:00:", timestamp7)
+print("Unix timestamp for 01/08/2022 07:40:00:", timestamp8)
+'''
 app = FastAPI()
 
 # Define a Pydantic model to represent the data datafev will receive
@@ -30,7 +131,7 @@ ts = None
 
 @app.post("/datafev_init/")
 async def receive_datafev_init(data: DatafevInitData):
-    global clusters_dict, capacities_dict, service_fleet, fleet, tariff, sim_parameters, system, ts
+    global clusters_dict, capacities_dict, service_fleet, fleet, tariff, sim_parameters, mcsystem, ts
 
     print('Datafev initialization data received successfully.')
 
@@ -63,29 +164,18 @@ async def receive_datafev_init(data: DatafevInitData):
     tariff = tariff_df['tariff_data']
 
     # Initialize datafev objects
-    # Multi cluster system of the simulation
-    system = MultiClusterSystem("multicluster")
+    # Multi cluster mcsystem of the simulation
+    mcsystem = MultiClusterSystem("multicluster")
     service_fleet = EVFleet("fleet", service_fleet_parameters, sim_parameters['sim_horizon'], service=True)
     fleet = EVFleet("fleet", fleet_parameters, sim_parameters['sim_horizon'], service=False)
 
     # Iterate through input_clusters_dict
     for key, df in clusters_dict.items():
         charger_cluster = ChargerCluster(key, df)
-        system.add_cc(charger_cluster)
+        mcsystem.add_cc(charger_cluster)
         charger_cluster.enter_power_limits(sim_parameters['sim_start'], sim_parameters['sim_end'], sim_parameters['sim_step'], capacities_dict.get(key))
-    system.enter_tou_price(tariff, sim_parameters['sim_step'])
+    mcsystem.enter_tou_price(tariff, sim_parameters['sim_step'])
 
-    '''
-    # Reserve chargers for the fleet, which are not using the service
-    for ev in fleet.objects.values():
-        cluster_id = ev.cluster_target
-        charger_id = ev.charger_target
-        cluster = system.clusters[cluster_id]
-        selected_charger = cluster.chargers[charger_id]
-        res_from = ev.t_arr_real
-        res_until = ev.t_dep_real
-        cluster.reserve(res_from, res_until, ev, selected_charger)
-    '''
     return {"message": "Datafev initialization data received successfully."}
 
 
@@ -111,11 +201,11 @@ async def request_charging_offer(item: ChargerSelectionRequest):
     ###########################################################################
     #Charger selection algorithm
     
-    available_chargers_dict = system.clusters[cluster_id].query_availability(start, end, step)
+    available_chargers_dict = mcsystem.clusters[cluster_id].query_availability(start, end, step)
     
     # If there are no available chargers return None
     if available_chargers_dict.empty:
-        print("Response sent to Aggregator.")
+        print("There are no available chargers in this cluster. Response sent to Aggregator.")
         return None
 
     else:
@@ -127,7 +217,6 @@ async def request_charging_offer(item: ChargerSelectionRequest):
         energy_supply_by_chargers=available_chargers["max p_ch"]*parking_duration
         
         chargers_with_sufficient_supply_rating=energy_supply_by_chargers[energy_supply_by_chargers>=ev_energy_demand]
-        
         if len(chargers_with_sufficient_supply_rating):
             selected_charger_id=chargers_with_sufficient_supply_rating.idxmin()
         else:
@@ -142,10 +231,10 @@ async def request_charging_offer(item: ChargerSelectionRequest):
         f_discount     =0.0
         f_markup       =0.05
         arbitrage_coeff=0.1
-        schedule = system.clusters[cluster_id].query_actual_schedule(start, end, step)
-        upper_bound = system.clusters[cluster_id].upper_limit[start:end]
-        lower_bound = system.clusters[cluster_id].lower_limit[start:end]
-        tou_tariff = system.tou_price
+        schedule = mcsystem.clusters[cluster_id].query_actual_schedule(start, end, step)
+        upper_bound = mcsystem.clusters[cluster_id].upper_limit[start:end]
+        lower_bound = mcsystem.clusters[cluster_id].lower_limit[start:end]
+        tou_tariff = mcsystem.tou_price
 
         # TODO: to be given under XLSX input
         #f_discount : global parameter
@@ -181,6 +270,7 @@ class ReservationData(BaseModel):
     P_Schedule: Dict[str, float]
     S_Schedule: Dict[str, float]
     VehicleID: str
+    ArrivalTime: float
 
 # Datafev reservation request counter to be used for timestamp-synchronization with event manager
 datafev_request_counter = 0
@@ -194,28 +284,25 @@ async def receive_reservation(item: ReservationData):
 
     # Update objects and their schedule
     cluster_id = item.Aggregator.replace("aggregator_", "")
-    selected_cluster = system.clusters[cluster_id]
+    selected_cluster = mcsystem.clusters[cluster_id]
     selected_charger = selected_cluster.chargers[item.Charger]
     # Extract and convert the first and last keys to datetime objects to obtain res_from and res_until
     res_from = datetime.strptime(next(iter(item.P_Schedule)), "%Y-%m-%d %H:%M:%S")
     res_until = datetime.strptime(next(reversed(item.P_Schedule)), "%Y-%m-%d %H:%M:%S")
     ev = service_fleet.objects[item.VehicleID] 
-    # Reserve selected charger in the cluster
-    selected_cluster.reserve(res_from, res_until, ev, selected_charger)
-    print('Reservation made.')
-    # Add 1 to datafev reservation request counter
-    datafev_request_counter += 1
+
     # TODO: Maybe there will be cases that EV are not coming/coming lately(traffic independent reasons, maybe personal driver behaviour) 
     # even they are told so, incoming_at should be changed/upgraded in the future -- same for outgoing_at
-    service_fleet.incoming_at[res_from].append(ev)
-    service_fleet.outgoing_at[res_until].append(ev)
+    arrival_time = datetime.fromtimestamp(item.ArrivalTime)
+    service_fleet.incoming_at[arrival_time].append(ev)
+    service_fleet.outgoing_at[res_until+sim_parameters['sim_step']].append(ev)
     p_schedule_str = item.P_Schedule
     s_schedule_str = item.S_Schedule
     # Convert strings to datetime objects
     p_schedule = {datetime.strptime(key, '%Y-%m-%d %H:%M:%S'): value for key, value in p_schedule_str.items()}
     s_schedule = {datetime.strptime(key, '%Y-%m-%d %H:%M:%S'): value for key, value in s_schedule_str.items()}
-    # Setting schedule for selected charger
-    selected_charger.set_schedule(ts, pd.Series(p_schedule), pd.Series(s_schedule))
+    # Reserve selected charger in the cluster and setting schedule for selected charger
+    selected_cluster.reserve(ts, res_from, res_until+sim_parameters['sim_step'], ev, selected_charger,pd.Series(p_schedule), pd.Series(s_schedule))
 
     # Get the first and the last key of s_schedule to initialize estimated/real arrival/departure datetimes and SoCs of EV
     # TODO: This estimated and real may vary, an approach should be developed here accordingly
@@ -223,12 +310,14 @@ async def receive_reservation(item: ReservationData):
     first_key = first_item[0]
     ev.t_arr_est = first_key
     ev.t_arr_real = ev.t_arr_est
-    ev.soc_arr_est = s_schedule[first_key]
+    ev.soc_arr_est = s_schedule[arrival_time]
     ev.soc_arr_real = ev.soc_arr_est
-    ev.soc[first_key] = s_schedule[first_key]
+    ev.soc[arrival_time] = s_schedule[arrival_time]
     last_key = list(s_schedule.keys())[-1]
     ev.t_dep_est = last_key
     ev.t_dep_real = ev.t_dep_est
+    # Add 1 to datafev reservation request counter
+    datafev_request_counter += 1
 
     return {"message": "Reservation data received successfully."}
 
@@ -242,7 +331,7 @@ async def send_request_counter():
 class SynchronizeRequest(BaseModel):
     ts: datetime
     sim_step: float
-
+# TODO: Do we need sim_step here? Is it equal to sim_parameters['sim_step'], if yes we don't
 
 @app.post("/synchronize/")
 async def synchronizer(charge_request: SynchronizeRequest):
@@ -260,10 +349,10 @@ async def synchronizer(charge_request: SynchronizeRequest):
     for ev in fleet.objects.values():
         if ev.t_arr_real == ts:
             cluster_id = ev.cluster_target
-            available_chargers_dict = system.clusters[cluster_id].query_availability(ev.t_arr_real, ev.t_dep_real, step)
+            available_chargers_dict = mcsystem.clusters[cluster_id].query_availability(ev.t_arr_real, ev.t_dep_real, step)
 
             if available_chargers_dict.empty:
-                print(f"There are no available chargers in the cluster {cluster_id} for EV {ev.vehicle_id}. EV {ev.vehicle_id} could not be admitted to the system.")
+                print(f"There are no available chargers in the cluster {cluster_id} for EV {ev.vehicle_id}. EV {ev.vehicle_id} could not be admitted to the Multi-Cluster-System.")
                 # TODO: Re-routing
             else:
                 available_chargers = pd.DataFrame(available_chargers_dict)
@@ -279,13 +368,11 @@ async def synchronizer(charge_request: SynchronizeRequest):
                 else:
                     selected_charger_id = available_chargers["max p_ch"].idxmax()
 
-                cluster = system.clusters[cluster_id]
+                cluster = mcsystem.clusters[cluster_id]
                 selected_charger = cluster.chargers[selected_charger_id]
-                # Reserve charger for the EV arrived in ts
-                cluster.reserve(ev.t_arr_real, ev.t_dep_real, ev, selected_charger)
+
                 fleet.incoming_at[ev.t_arr_real].append(ev)
                 fleet.outgoing_at[ev.t_dep_real].append(ev)
-                print(f"EV {ev.vehicle_id} is connected to charger {selected_charger_id} in cluster {cluster_id}.")
 
                 # Create and update p_schedule and s_schedule for the EV
                 time_index = pd.date_range(ev.t_arr_real, ev.t_dep_real, freq=step)
@@ -315,19 +402,43 @@ async def synchronizer(charge_request: SynchronizeRequest):
                         s_schedule.loc[ts_:] = ev.soc_tar_at_t_dep_est
                         break  # Break the loop as charging is complete for this EV           
                 
-                selected_charger.set_schedule(ts, p_schedule, s_schedule)
+                # Reserve selected charger in the cluster and setting schedule for selected charger
+                cluster.reserve(ts, ev.t_arr_real, ev.t_dep_real, ev, selected_charger, p_schedule, s_schedule)
+                print(f"EV {ev.vehicle_id} is connected to charger {selected_charger_id} in cluster {cluster_id}.")
 
     #####################################################################################################################################        
 
     #####################################################################################################################################
-    # Adding arriving and leaving EV to the dataset of the system, connecting it to the assigned charger, and charging
+    # Adding arriving and leaving EV to the dataset of the mcsystem, connecting it to the assigned charger, and charging
     #####################################################################################################################################
-    
+
+    # Departing EVs
+    # For EV Fleet, which are not using the service
+    outgoing_vehicles = fleet.outgoing_vehicles_at(ts)
+    for ev in outgoing_vehicles:
+        if ev.admitted == True:
+            cu = ev.connected_cu
+            cu.disconnect(ts)
+            cc = ev.connected_cc
+            cc.unreserve(ts, ev.reservation_id)
+            cc.enter_data_of_outgoing_vehicle(ts, sim_parameters['sim_step'], ev)
+
+    # For EV Fleet using the service
+    outgoing_vehicles_ser = service_fleet.outgoing_vehicles_at(ts)
+    for ev in outgoing_vehicles_ser:
+        if ev.admitted == True:
+            cu = ev.connected_cu
+            cu.disconnect(ts)
+            cc = ev.connected_cc
+            cc.unreserve(ts, ev.reservation_id)
+            cc.enter_data_of_outgoing_vehicle(ts, sim_parameters['sim_step'], ev)
+
+
     # Arriving EVs
     # For EV Fleet, which are not using the service
     incoming_vehicles = fleet.incoming_vehicles_at(ts)
     for ev in incoming_vehicles:
-        #TODO: Future work: There might be casses that reserved chargers are still occupied and available, then system must use a re-routing routine
+        #TODO: Future work: There might be casses that reserved chargers are still occupied and available, then mcsystem must use a re-routing routine
         # The EV approaches the cluster where it has reservation
         reserved_cluster = ev.reserved_cluster
         reserved_charger = ev.reserved_charger
@@ -340,8 +451,9 @@ async def synchronizer(charge_request: SynchronizeRequest):
         ev.admitted = True
     # For EV Fleet using the service
     incoming_vehicles_ser = service_fleet.incoming_vehicles_at(ts)
+    # TODO: Future work: For the EVs which are not coming on time(failure of traffic data), we need to assign a new charging schedule and maybe a new charging unit
     for ev in incoming_vehicles_ser:
-        #TODO: Future work: There might be casses that reserved chargers are still occupied and available, then system must use a re-routing routine
+        #TODO: Future work: There might be cases that reserved chargers are still occupied and not available, then mcsystem must use a re-routing routine
         # The EV approaches the cluster where it has reservation
         reserved_cluster = ev.reserved_cluster
         reserved_charger = ev.reserved_charger
@@ -353,37 +465,186 @@ async def synchronizer(charge_request: SynchronizeRequest):
         )
         ev.admitted = True
 
-    # Departing EVs
-    # For EV Fleet, which are not using the service
-    outgoing_vehicles = fleet.outgoing_vehicles_at(ts)
-    for ev in outgoing_vehicles:
-        if ev.admitted == True:
-            cu = ev.connected_cu
-            cu.disconnect(ts)
-            cc = ev.connected_cc
-            cc.unreserve(ts, ev.reservation_id)
-            cc.enter_data_of_outgoing_vehicle(ts, ev)
-    # For EV Fleet using the service
-    outgoing_vehicles_ser = service_fleet.outgoing_vehicles_at(ts)
-    for ev in outgoing_vehicles_ser:
-        if ev.admitted == True:
-            cu = ev.connected_cu
-            cu.disconnect(ts)
-            cc = ev.connected_cc
-            cc.unreserve(ts, ev.reservation_id)
-            cc.enter_data_of_outgoing_vehicle(ts, ev)
 
     # Charging
-    for cc_id in system.clusters.keys():
-        cluster = system.clusters[cc_id]
+    for cc_id in mcsystem.clusters.keys():
+        cluster = mcsystem.clusters[cc_id]
         if cluster.query_actual_occupation(ts) > 0:
             # The cluster includes connected EVs
-            for cu_id in system.clusters[cc_id].chargers.keys():
-                cu = system.clusters[cc_id].chargers[cu_id]
+            for cu_id in mcsystem.clusters[cc_id].chargers.keys():
+                cu = mcsystem.clusters[cc_id].chargers[cu_id]
                 if cu.connected_ev != None:
-                    print('Charging', cu.connected_ev, 'with', cu_id)
                     cu.supply(ts, step, cu.schedule_pow[cu.active_schedule_instance][ts])
 
+    '''
     #####################################################################################################################################
+    #####################################################################################################################################
+    # Data upload to MySQL database
+    #####################################################################################################################################
+
+    # Database connection parameters
+    db_params = {
+        'host': mysql_host,
+        'user': mysql_user,
+        'password': mysql_password,
+        'db': mysql_database,
+        'charset': 'utf8mb4',
+        'cursorclass': pymysql.cursors.DictCursor
+    }
+
+    # Open a connection to the database
+    engine = create_engine(f"mysql+pymysql://{db_params['user']}:{db_params['password']}@{db_params['host']}/{db_params['db']}")
+    
+    # EV data
+    # For EV Fleet using the service
+    for ev_id, ev in service_fleet.objects.items():
+        # Generate a unique table name for each EV
+        table_name = f"ev_{ev_id}_data"
+
+        if ev.connected_cu is not None: 
+            # TODO: In the table of EVs a new entry should be added where values could be 'drive', 'wait' etc. and this way EVs which are not connected to a cu can also be added
+            # Fill EV database DataFrame with current values (values at ts)
+            ev.databank_df.loc[len(ev.databank_df)] = [ts, ev.soc[ts], ev.g2v[ts], ev.v2g[ts],  ev.admitted]
+
+            # Open a connection to the database
+            connection = pymysql.connect(**db_params)
+
+            create_table_query = f"""
+                CREATE TABLE IF NOT EXISTS {table_name} (
+                    timestamp TIMESTAMP PRIMARY KEY,
+                    soc FLOAT,
+                    g2v FLOAT,
+                    v2g FLOAT,
+                    admission BOOL
+                )
+            """
+
+            with connection.cursor() as cursor:
+                cursor.execute(create_table_query)
+
+            # Save DataFrame to the database
+            ev.databank_df.to_sql(table_name, con=engine, if_exists='replace', index=False)
+
+            # Commit and close the connection
+            connection.commit()
+            connection.close()
+
+    # For EV Fleet, which are not using the service
+    for ev_id, ev in fleet.objects.items():
+        # Generate a unique table name for each EV
+        table_name = f"ev_{ev_id}_data"
+
+        if ev.connected_cu is not None:
+            # Fill EV database DataFrame with current values (values at ts)
+            ev.databank_df.loc[len(ev.databank_df)] = [ts, ev.soc[ts], ev.g2v[ts], ev.v2g[ts],  ev.admitted]
+
+            # Open a connection to the database
+            connection = pymysql.connect(**db_params)
+
+            create_table_query = f"""
+                CREATE TABLE IF NOT EXISTS {table_name} (
+                    timestamp TIMESTAMP PRIMARY KEY,
+                    soc FLOAT,
+                    g2v FLOAT,
+                    v2g FLOAT,
+                    admission BOOL
+                )
+            """
+
+            with connection.cursor() as cursor:
+                cursor.execute(create_table_query)
+
+            # Save DataFrame to the database
+            ev.databank_df.to_sql(table_name, con=engine, if_exists='replace', index=False)
+
+            # Commit and close the connection
+            connection.commit()
+            connection.close()
+    
+    # Create a dictionary to store cluster data DataFrames
+    cc_data_dict = {}
+
+    # Charging unit, cluster, and multi-cluster-system data
+    for cc_id, cc in mcsystem.clusters.items():
+        # Create a dictionary to store charging unit data DataFrames
+        cu_data_dict = {}
+
+        for cu_id, cu in mcsystem.clusters[cc_id].chargers.items():
+            # Generate a unique table name for each charging unit
+            table_name = f"cu_{cu_id}_data"
+
+            if cu.connected_ev is not None:
+                # Fill CU database DataFrame with current values (values at ts)
+                cu.databank_df.loc[len(cu.databank_df)] = [ts, cu.supplied_power[ts], cu.consumed_power[ts], cu.connected_ev.vehicle_id]
+            else:
+                # Fill CU database DataFrame with current values (values at ts)
+                cu.databank_df.loc[len(cu.databank_df)] = [ts, 0, 0, None]
+            # Open a connection to the database
+            connection = pymysql.connect(**db_params)
+
+            create_table_query = f"""
+                CREATE TABLE IF NOT EXISTS {table_name} (
+                    timestamp TIMESTAMP PRIMARY KEY,
+                    supplied_power FLOAT,
+                    consumed_power FLOAT,
+                    connected_ev_id VARCHAR(255)
+                )
+            """
+
+            # Assign a key to each DataFrame and store it in the dictionary
+            cu_data_dict[cu_id] = cu.databank_df.copy()
+
+            with connection.cursor() as cursor:
+                cursor.execute(create_table_query)
+
+            # Save DataFrame to the database
+            cu.databank_df.to_sql(table_name, con=engine, if_exists='replace', index=False)
+
+            # Commit and close the connection
+            connection.commit()
+            connection.close()
+            
+        # Merge charging unit DataFrames into a single DataFrame for cluster database
+        cc_table_name = f"cc_{cc_id}_data"
+        # Create a dictionary to store cluster data DataFrames
+        if cu_data_dict:  # Check if cu_data_dict is not empty before concatenating
+            # Merge DataFrames
+            cc.databank_df = pd.concat(cu_data_dict.values(), keys=cu_data_dict.keys(), axis=1)
+            # Assign a key to each DataFrame and store it in the dictionary
+            cc_data_dict[cc_id] = cc.databank_df.copy()
+            # Open a connection to the database
+            connection = pymysql.connect(**db_params)
+            with connection.cursor() as cursor:
+                    cursor.execute(create_table_query)
+            # Save the merged DataFrame to the database
+            cc.databank_df.to_sql(cc_table_name, con=engine, if_exists='replace', index=False)
+            # Commit and close the connection
+            connection.commit()
+            connection.close()
+    # Merge cluster DataFrames into a single DataFrame for multi-cluster-system database
+    mcsystem_table_name = f"mcsystem_{mcsystem.id}_data"
+    if cc_data_dict:  # Check if cc_data_dict is not empty before concatenating
+        # Merge DataFrames
+        mcsystem.databank_df = pd.concat(cc_data_dict.values(), axis=1)
+        # Open a connection to the database
+        connection = pymysql.connect(**db_params)
+        with connection.cursor() as cursor:
+                cursor.execute(create_table_query)
+        # Save the merged DataFrame to the database
+        mcsystem.databank_df.to_sql(mcsystem_table_name, con=engine, if_exists='replace', index=False)
+        # Commit and close the connection
+        connection.commit()
+        connection.close()
+    '''
+    # Save datafev XLSX outputs if its the last timestamp of the simulation
+    if ts==sim_parameters['sim_end']-sim_parameters['sim_step']:
+
+        mcsystem.export_results_to_excel(sim_parameters['sim_start'], sim_parameters['sim_end'], sim_parameters['sim_step'], 'outputs/mcsysytem_output.xlsx')
+        mcsystem.visualize_cluster_loading(sim_parameters['sim_start'], sim_parameters['sim_end'], sim_parameters['sim_step'], 'outputs/mcsystem_cluster_loading.png')
+        mcsystem.visualize_cluster_occupation(sim_parameters['sim_start'], sim_parameters['sim_end'], sim_parameters['sim_step'], 'outputs/mcsystem_cluster_occupation.png')
+
+        fleet.export_results_to_excel(sim_parameters['sim_start'], sim_parameters['sim_end'], sim_parameters['sim_step'], 'outputs/fleet_output.xlsx')
+        service_fleet.export_results_to_excel(sim_parameters['sim_start'], sim_parameters['sim_end'], sim_parameters['sim_step'], 'outputs/service_fleet_output.xlsx')
+
     
     return {"message": "Synchronization done"}

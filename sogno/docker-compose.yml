@@ -32,23 +32,6 @@ services:
     networks:
     - sogno_network
     - external_aggregator_network
-  connector_2:
-    build:
-      context: ./connector
-      dockerfile: ./Dockerfile
-    container_name: connector_2
-    depends_on:
-    - coordinator
-    environment:
-    - CONNECTOR_ID=aggregator_2
-    - AGGREGATOR_AVAILABILITY_URL=http://host.docker.internal:9002/availability/
-    - AGGREGATOR_SCHEDULE_URL=http://host.docker.internal:9002/schedule/
-    - REQUEST_TOPIC=availability/request/aggregator_2
-    - RESPONSE_TOPIC=availability/response/aggregator_2
-    - PYTHONUNBUFFERED=1
-    networks:
-    - sogno_network
-    - external_aggregator_network
   coordinator:
     build:
       context: ./coordinator

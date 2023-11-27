@@ -65,6 +65,10 @@ class ChargingUnit(object):
         self.schedule_pow = {}
         self.schedule_soc = {}
 
+        # Initialize an empty DataFrame for the Database
+        columns = ['timestamp', 'supplied_power', 'consumed_power', 'connected_ev_id']
+        self.databank_df = pd.DataFrame(columns=columns)
+
     def connect(self, ts, ev):
         """
         This method connects an EV to the charger. It is called in 

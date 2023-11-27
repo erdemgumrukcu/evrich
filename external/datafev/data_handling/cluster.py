@@ -102,6 +102,9 @@ class ChargerCluster(object):
             cu = ChargingUnit(cuID, pch, pds, eff)
             self.add_cu(cu)
 
+        # Initialize an empty DataFrame for the Database
+        self.databank_df = pd.DataFrame()
+
     def add_cu(self, charging_unit):
         """
         This method is run at initialization of the cluster object.
@@ -172,7 +175,7 @@ class ChargerCluster(object):
 
     # TODO: ts has been deleted from the inputs, needs to be added if user wants to use contract feature
     #def reserve(self, ts, res_from, res_until, ev, cu, contract=None):
-    def reserve(self, res_from, res_until, ev, cu):
+    def reserve(self, ts, res_from, res_until, ev, cu, p_ref, s_ref):
 
         """
         This method reserves a charging unit for an EV for a specific period.
@@ -214,11 +217,13 @@ class ChargerCluster(object):
         self.re_dataset.loc[reservation_id, "Active"] = True
         self.re_dataset.loc[reservation_id, "EV ID"] = ev.vehicle_id
         self.re_dataset.loc[reservation_id, "CU ID"] = cu.id
-        #self.re_dataset.loc[reservation_id, "Reserved At"] = ts
+        self.re_dataset.loc[reservation_id, "Reserved At"] = ts
         self.re_dataset.loc[reservation_id, "From"] = res_from
         self.re_dataset.loc[reservation_id, "Until"] = res_until
 
-        # TODO: Enable contract, for that ts must be also sent to datafev within /datafev_update/ request
+        cu.set_schedule(ts, p_ref, s_ref)
+
+        # TODO: Enable contract?
         '''
         if contract != None:
 
@@ -335,7 +340,7 @@ class ChargerCluster(object):
             else 0
         )
 
-    def enter_data_of_outgoing_vehicle(self, ts, ev):
+    def enter_data_of_outgoing_vehicle(self, ts, step, ev):
         """
         This method enters the data about the charging event to the cc_dataset 
         for an outgoing EV. It is usually called in execution of departure 
@@ -479,7 +484,6 @@ class ChargerCluster(object):
         all_active_reservations = self.re_dataset[
             self.re_dataset["Active"] == True
         ]  # Reservations that are not cancelled
-
         for cu in self.chargers.values():
 
             active_reservations = all_active_reservations[
@@ -519,7 +523,6 @@ class ChargerCluster(object):
                     "max p_ds": cu.p_max_ds,
                     "eff": cu.eff,
                 }
-
         return available_chargers
 
     def analyze_consumption_profile(self, start, end, step):

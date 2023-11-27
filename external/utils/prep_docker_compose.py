@@ -5,19 +5,20 @@ import yaml
 # Get the current directory of the script
 script_directory = os.path.dirname(os.path.abspath(__file__))
 
-# Construct the path to aggregator_info.xlsx
-excel_file_path = os.path.join(script_directory, 'aggregator_info.xlsx')
+# Construct the path to input.xlsx
+excel_file_path = os.path.join(script_directory, 'input.xlsx')
 
 # Read the Excel file
-df = pd.read_excel(excel_file_path)
+cluster_df = pd.read_excel(excel_file_path, sheet_name="SocketInfoCluster")
+other_df = pd.read_excel(excel_file_path, sheet_name="SocketInfoOther")
+other_df = other_df.set_index('service_name')
 
 # Construct the path to save the generated docker-compose.yml
 output_file_path = os.path.join(script_directory, '../docker-compose.yml')
 
 services = []
 
-#TODO: Comment each block
-for _, row in df.iterrows():
+for _, row in cluster_df.iterrows():
     services.append(
         {
             "container_name": f"aggregator_{row['cluster_id']}",
@@ -33,8 +34,8 @@ for _, row in df.iterrows():
                 f"IP_ADDRESS={row['ip_address']}",
                 f"PORT_NUMBER={row['port_number']}",
                 "PYTHONUNBUFFERED=1",
-                "DATAFEV_CHARGER_SELECTION_URL=http://host.docker.internal:9004/charger_selection/",
-                "DATAFEV_RESERVATION_URL=http://host.docker.internal:9004/reservation/"
+                f"DATAFEV_CHARGER_SELECTION_URL=http://host.docker.internal:{other_df.at['datafev', 'port_number']}/charger_selection/",
+                f"DATAFEV_RESERVATION_URL=http://host.docker.internal:{other_df.at['datafev', 'port_number']}/reservation/"
             ],
             "ports": [
                 f"{row['port_number']}:{row['port_number']}"
@@ -44,6 +45,7 @@ for _, row in df.iterrows():
             ]
         }
     )
+
 
 compose_config = {
     "version": "3",
@@ -69,7 +71,7 @@ compose_config = {
                 "traffic_network"
             ],
             "ports": [
-                "8000:8000" #TODO: Traffic API should be a user parameter
+                f"{other_df.at['trafficapi', 'port_number']}:{other_df.at['trafficapi', 'port_number']}"
             ],
             "environment": [
                 "PYTHONUNBUFFERED=1"
@@ -86,9 +88,9 @@ compose_config = {
             ],
             "environment": [
                 "SERVICE_API_URL=http://host.docker.internal:7000/routing/post_request_type1/",
-                "DATAFEV_INIT_URL=http://host.docker.internal:9004/datafev_init/",
-                "DATAFEV_GET_REQUEST_COUNTER_URL=http://host.docker.internal:9004/get_request_counter/",
-                "DATAFEV_SYNCHRONIZE_URL=http://host.docker.internal:9004/synchronize/",
+                f"DATAFEV_INIT_URL=http://host.docker.internal:{other_df.at['datafev', 'port_number']}/datafev_init/",
+                f"DATAFEV_GET_REQUEST_COUNTER_URL=http://host.docker.internal:{other_df.at['datafev', 'port_number']}/get_request_counter/",
+                f"DATAFEV_SYNCHRONIZE_URL=http://host.docker.internal:{other_df.at['datafev', 'port_number']}/synchronize/",
                 "PYTHONUNBUFFERED=1"
             ],
             "depends_on": [
@@ -105,10 +107,32 @@ compose_config = {
                 "external_network"
             ],
             "ports": [
-                "9004:9004" #TODO: datafev port should be a user parameter
+                f"{other_df.at['datafev', 'port_number']}:{other_df.at['datafev', 'port_number']}"
             ],
             "environment": [
+                "MYSQL_HOST=mysql",
+                "MYSQL_PORT=3306",
+                "MYSQL_USER=root",
+                "MYSQL_PASSWORD=root",
+                "MYSQL_DB=mydatabase",
                 "PYTHONUNBUFFERED=1"
+            ],
+            "volumes": [
+                "/C/Users/aytugy/Desktop/workspace/evrich/external/datafev/outputs:/app/outputs"
+            ]
+        },
+        "mysql": {
+            "image": "mysql:latest",
+            "container_name": "mysql",
+            "environment": [
+                "MYSQL_ROOT_PASSWORD=root",
+                "MYSQL_DATABASE=mydatabase"
+            ],
+            "ports": [
+                f"{other_df.at['mysql', 'port_number']}:{other_df.at['mysql', 'port_number']}"
+            ],
+            "networks": [
+                "external_network"
             ]
         }
     }

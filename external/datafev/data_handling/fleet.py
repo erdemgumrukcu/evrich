@@ -22,6 +22,7 @@
 from data_handling.vehicle import ElectricVehicle
 import pandas as pd
 from datetime import datetime
+import mysql.connector
 
 
 class EVFleet(object):
@@ -60,6 +61,7 @@ class EVFleet(object):
         self.outgoing_at = dict([(t, []) for t in sim_horizon])
         self.outgoing_at[None] = []
 
+
         ##################################################################################################
         # Define behavior
         for _, i in behavior.iterrows():
@@ -73,14 +75,11 @@ class EVFleet(object):
             ev = ElectricVehicle(evID, evModel, bcap, p_max_ch, p_max_ds)
 
             # Assigning the scenario parameters for requests
-
-            #ev.t_arr_est = i["estimated_arrival_time"]
-            #ev.t_dep_est = i["estimated_departure_time"]
-            #ev.soc_arr_est = i["estimated_arrival_SoC"]
+            ev.admitted = False
             ev.soc_tar_at_t_dep_est = i["demand_target_SoC"]
             ev.v2g_allow = i["v2g_allowance_kWh"] * 3600
             if service == True:
-                ev.t_res = datetime.fromtimestamp(i["start_time"]) # TODO: (BE SURE) Reservation time (=Start of drive after reservation)
+                ev.t_res = datetime.fromtimestamp(i["start_time"]) # Reservation time (=Start of drive after reservation)
                 ev.t_res_unix = i["start_time"] # Reservation time (=Start of drive after reservation) in unix
                 ev.soc_res = i["start_SoC"] # SoC at the reservation time
                 ev.loc_res = i["start_location"] # Location of the EV at the reservation time
@@ -238,3 +237,4 @@ class EVFleet(object):
             g2v.to_excel(writer, sheet_name="G2V Charge")
             v2g.to_excel(writer, sheet_name="V2G Discharge")
             status.to_excel(writer, sheet_name="Admitted")
+

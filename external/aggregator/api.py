@@ -51,6 +51,7 @@ class Schedule(BaseModel):
     P_Schedule: Dict[str, float]
     S_Schedule: Dict[str, float]
     VehicleID: str
+    ArrivalTime: float
 
 @app.post("/schedule/")
 async def request_charging_offer(item: Schedule):

@@ -5,11 +5,11 @@ import yaml
 # Get the current directory of the script
 script_directory = os.path.dirname(os.path.abspath(__file__))
 
-# Construct the path to aggregator_info.xlsx
-excel_file_path = os.path.join(script_directory, './aggregator_info.xlsx')
+# Construct the path to input.xlsx
+excel_file_path = os.path.join(script_directory, './input.xlsx')
 
 # Read the Excel file
-df = pd.read_excel(excel_file_path, sheet_name='SocketInfo')
+df = pd.read_excel(excel_file_path, sheet_name='SocketInfoCluster')
 
 # Construct the path to save the generated docker-compose.yml
 output_file_path = os.path.join(script_directory, '../docker-compose.yml')

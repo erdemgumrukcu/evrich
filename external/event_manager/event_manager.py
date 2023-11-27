@@ -18,7 +18,7 @@ sim_parameters = {'sim_start': sim_start, 'sim_end': sim_end, 'sim_step': sim_st
 
 # Get the current directory of the script
 abs_path = os.path.dirname(os.path.abspath(__file__))
-file_path = "data_handling/aggregator_info.xlsx"
+file_path = "data_handling/input.xlsx"
 
 # Construct the file path for the input XLSX file
 abs_input_file_path = os.path.join(abs_path, file_path)
@@ -31,6 +31,7 @@ tariff_as_dataframe = pd.DataFrame({'tariff_data': tou_tariff})
 
 # Get environment variable DATAFEV_INIT_URL
 datafev_init_url = os.environ.get('DATAFEV_INIT_URL')
+print(datafev_init_url)
 
 # Try to reach datafev (Wait until its ready to receive requests)
 # Maximum number of retries
@@ -69,7 +70,7 @@ while not connected and retry_count < max_retries:
     time.sleep(retry_delay)  # Wait before the next retry
 
 if not connected:
-    print(f"Max retry attempts ({max_retries}) reached. Unable to establish a connection to Datafev.")
+    print(f"Max retry attempts ({max_retries}) reached. Unable to establish a connection to datafev.")
 else:
     # Create simulation object
     sim = Simulation(sim_start, sim_end, sim_step, sim_horizon, input_service_fleet)

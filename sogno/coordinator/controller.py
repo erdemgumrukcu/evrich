@@ -77,6 +77,7 @@ def on_message(client, userdata, msg):
             traffic_service_request={}
             
             #Inputs for vehicle characterization
+            traffic_service_request['vehicle_id']=ev_client_request['vehicle_id']    
             traffic_service_request['vehicle_model']=ev_client_request['vehicle_model']                                
             traffic_service_request['battery_energy_capacity']=ev_client_request['battery_energy_capacity']
             
@@ -89,10 +90,10 @@ def on_message(client, userdata, msg):
             #TODO: More sophisticated filtering based on sojourn_location_center and sojourn_location_radius
             traffic_service_request['candidate_hosts']=connector_list 
             print("Sending an HTTP request to the external traffic service:")
-            traffic_servive_response_=requests.post(traffic_service_url, json = traffic_service_request)
-            traffic_servive_response=traffic_servive_response_.json()
+            traffic_service_response_=requests.post(traffic_service_url, json = traffic_service_request)
+            traffic_service_response=traffic_service_response_.json()
             print("The received traffic response:")
-            print(traffic_servive_response)   
+            print(traffic_service_response)   
             
             #TODO: Make the sleep time adaptive: if the response comes early then go to the next step without waiting for 0.5 seconds
             time.sleep(0.5)
@@ -118,9 +119,9 @@ def on_message(client, userdata, msg):
             for agg_id in connector_list:
                 
                 #Assing the optimization parameters specified by the Traffic service
-                opt_parameters['arrtime'][agg_id]=traffic_servive_response[agg_id]['estimate_arrival_time']
-                opt_parameters['deptime'][agg_id]=traffic_servive_response[agg_id]['estimate_arrival_time']+ev_client_request['sojourn_period']
-                opt_parameters['arrsoc'][agg_id] =traffic_servive_response[agg_id]['estimate_arrival_SOC']
+                opt_parameters['arrtime'][agg_id]=traffic_service_response[agg_id]['estimate_arrival_time']
+                opt_parameters['deptime'][agg_id]=traffic_service_response[agg_id]['estimate_arrival_time']+ev_client_request['sojourn_period']
+                opt_parameters['arrsoc'][agg_id] =traffic_service_response[agg_id]['estimate_arrival_SOC']
                         
                 #Inputs for availability queries (the data that will be sent to the Connector microservices)
                 inputs_for_availability_query={}
@@ -149,9 +150,15 @@ def on_message(client, userdata, msg):
         
         print("Availability response received from", agg_id, ".")       
         availability[agg_id]=message_loaded
-        if availability[agg_id] is not None:
-            agg_response=availability[agg_id]
-            
+        agg_response=availability[agg_id]
+
+        if availability[agg_id] == None:
+            # If no charging unit available in any aggregator, delete its entries from the dictionary to be send to optimiser
+            opt_parameters['arrtime'].pop(agg_id, None)
+            opt_parameters['deptime'].pop(agg_id, None)
+            opt_parameters['arrsoc'].pop(agg_id, None)
+        else:
+            # If the aggregator has any available charging unit for the service request
             opt_parameters['p_ch'][agg_id]=min(agg_response['p_ch_max'],ev_client_request['battery_power_charging'])
             opt_parameters['p_ds'][agg_id]=min(agg_response['p_ds_max'],ev_client_request['battery_power_discharge'])
             opt_parameters['dps_g2v'][agg_id]=agg_response['dps_g2v']
@@ -162,12 +169,13 @@ def on_message(client, userdata, msg):
         # TODO: Wait 5-10-15 secs if its not equal --> calculate with data received till now
         # TODO: Take this logic to datafev, add todos there (delay control)
         if len(availability)==len(connector_list): 
-
             #Target SOC is the maximum achievable SOC under the given options
             tarsocs={}
-            for agg_name in availability.keys():
-                delta_soc=agg_response['max_energy_supply']/opt_parameters['ecap']
-                tarsocs[agg_name]=opt_parameters['arrsoc'][agg_id]+delta_soc
+            for agg_name, agg_response in availability.items():
+                # If no charging unit available in any aggregator, delete it from availability dict 
+                if agg_response != None:
+                    delta_soc=agg_response['max_energy_supply']/opt_parameters['ecap']
+                    tarsocs[agg_name]=opt_parameters['arrsoc'][agg_name]+delta_soc
             opt_parameters['tarsoc'] =pd.Series(tarsocs).max()
 
             #Optimization horizon covers earliest arrival and latest departure 
@@ -206,7 +214,8 @@ def on_message(client, userdata, msg):
             # Send response just to selected aggregator
             if agg_id == aggregator_id:
                 response_to_ag = message_loaded  # Prepare the response to the aggregator's connector
-                response_to_ag['VehicleID'] = ev_client_request['vehicle_id'] 
+                response_to_ag['VehicleID'] = ev_client_request['vehicle_id']
+                response_to_ag['ArrivalTime'] = opt_parameters['arrtime'][agg_id]
                 response_to_ag_json = json.dumps(response_to_ag)
                 response_topic = f"response_to_{aggregator_id}"
                 client.publish(response_topic, response_to_ag_json)
