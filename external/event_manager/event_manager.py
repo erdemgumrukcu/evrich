@@ -24,10 +24,10 @@ file_path = "data_handling/input.xlsx"
 abs_input_file_path = os.path.join(abs_path, file_path)
 
 # Parse input from the XLSX input file (TODO: Implement data loading logic here)
-input_clusters_dict, input_capacities_dict, input_service_fleet, input_fleet, tou_tariff = parse_standard_xlsx_input(file_path=abs_input_file_path)
+input_clusters_dict, input_capacities_dict, input_service_fleet, input_fleet, input_tariff_dict = parse_standard_xlsx_input(file_path=abs_input_file_path)
 
 # Convert the tariff to a DataFrame to include an index
-tariff_as_dataframe = pd.DataFrame({'tariff_data': tou_tariff})
+#tariff_as_dataframe = pd.DataFrame({'tariff_data': tou_tariff})
 
 # Get environment variable DATAFEV_INIT_URL
 datafev_init_url = os.environ.get('DATAFEV_INIT_URL')
@@ -49,7 +49,7 @@ while not connected and retry_count < max_retries:
     "input_capacities_dict": {key: df.to_dict(orient='split') for key, df in input_capacities_dict.items()},
     "input_service_fleet": input_service_fleet.to_dict(orient='split'),
     "input_fleet": input_fleet.to_dict(orient='split'),
-    "tariff_as_dataframe": tariff_as_dataframe.to_dict(orient='split'),
+    "input_tariff_dict": {key: df.to_dict(orient='split') for key, df in input_tariff_dict.items()},
     "sim_parameters": sim_parameters
 }
     data_to_send_json = json.dumps(datafev_data_to_send, default=lambda o: str(o) if isinstance(o, (datetime, timedelta)) else None)

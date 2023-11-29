@@ -8,15 +8,17 @@ script_directory = os.path.dirname(os.path.abspath(__file__))
 # Construct the path to input.xlsx
 excel_file_path = os.path.join(script_directory, './input.xlsx')
 
-# Read the Excel file
-df = pd.read_excel(excel_file_path, sheet_name='SocketInfoCluster')
+# Read the Excel file and get cluster and others dataframes
+cluster_df = pd.read_excel(excel_file_path, sheet_name='SocketInfoCluster')
+other_df = pd.read_excel(excel_file_path, sheet_name='SocketInfoOther')
+other_df = other_df.set_index('service_name')
 
 # Construct the path to save the generated docker-compose.yml
 output_file_path = os.path.join(script_directory, '../docker-compose.yml')
 
 # Function to get AGGREGATOR_AVAILABILITY_URL based on cluster_id
 def get_aggregator_availability_url(cluster_id):
-    matching_row = df[df['cluster_id'] == cluster_id] # Find the rows in the Excel input file (DataFrame) where the cluster_id column matches the provided cluster_id value
+    matching_row = cluster_df[cluster_df['cluster_id'] == cluster_id] # Find the rows in the Excel input file (DataFrame) where the cluster_id column matches the provided cluster_id value
     if not matching_row.empty: # If a matching row is found
         port_number = matching_row.iloc[0]['port_number']
         return f"http://host.docker.internal:{port_number}/availability/"
@@ -24,16 +26,16 @@ def get_aggregator_availability_url(cluster_id):
 
 # Function to get AGGREGATOR_SCHEDULE_URL based on cluster_id
 def get_aggregator_schedule_url(cluster_id):
-    matching_row = df[df['cluster_id'] == cluster_id] # Find the rows in the Excel input file (DataFrame) where the cluster_id column matches the provided cluster_id value
+    matching_row = cluster_df[cluster_df['cluster_id'] == cluster_id] # Find the rows in the Excel input file (DataFrame) where the cluster_id column matches the provided cluster_id value
     if not matching_row.empty: # If a matching row is found
         port_number = matching_row.iloc[0]['port_number']
         return f"http://host.docker.internal:{port_number}/schedule/"
     return ""
 
 # Convert cluster_id to strings to ensure consistency
-df['cluster_id'] = df['cluster_id'].apply(lambda x: str(x))
+cluster_df['cluster_id'] = cluster_df['cluster_id'].apply(lambda x: str(x))
 
-connector_list = df['cluster_id'].tolist()  # list of container ids in strings
+connector_list = cluster_df['cluster_id'].tolist()  # list of container ids in strings
 
 compose_config = {
     "version": "3",
@@ -52,8 +54,12 @@ compose_config = {
         "gatewaymqtt": {
             "image": "toke/mosquitto",
             "container_name": "broker",
-            "expose": ["1883"],
-            "ports": ["1883:1883"],
+            "expose": [
+                f"{other_df.at['mqtt_broker', 'port_number']}"
+                ],
+            "ports": [
+                 f"{other_df.at['mqtt_broker', 'port_number']}:{other_df.at['mqtt_broker', 'port_number']}"
+            ],
             "restart": "unless-stopped",
             "networks": ["sogno_network"]
         },
@@ -64,7 +70,9 @@ compose_config = {
                 "dockerfile": "./Dockerfile"
             },
             "networks": ["sogno_network"],
-            "ports": ["7000:7000"]          #TODO: It should be user defined
+            "ports": [
+                 f"{other_df.at['service_api', 'port_number']}:{other_df.at['service_api', 'port_number']}"
+            ],
         },
         "coordinator": {
             "container_name": "coordinator",
@@ -74,7 +82,7 @@ compose_config = {
             },
             "networks": ["sogno_network", "external_traffic_network"],
             "environment": [
-                "TRAFFIC_URL=http://host.docker.internal:8000/trafficforecast/", #TODO: It should be user defined
+                f"TRAFFIC_URL=http://host.docker.internal:{other_df.at['trafficapi', 'port_number']}/trafficforecast/",
                 "PYTHONUNBUFFERED=1"
             ],
         },

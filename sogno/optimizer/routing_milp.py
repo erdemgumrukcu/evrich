@@ -262,7 +262,7 @@ def smart_routing(
 
     for c in model.C:
         if abs(model.xc[c]() - 1) <= 0.01:
-            target_cc = c
+                target_cc = c
 
     return p_schedule, s_schedule, target_cc
 

@@ -51,6 +51,7 @@ class MultiClusterSystem(object):
         self.type = "CS"
         self.id = system_id
         self.clusters = {}
+        self.tou_price = {}
 
         # Initialize an empty DataFrame for the Database
         self.databank_df = pd.DataFrame()
@@ -74,15 +75,15 @@ class MultiClusterSystem(object):
         self.clusters[cluster.id] = cluster
         cluster.station = self
 
-    def enter_tou_price(self, series, resolution):
+    def enter_tou_price(self, tariff_dict, resolution):
         """
         This method enters electricity price data as time series in the desired
         resolution. It is usually called before running simulation.
 
         Parameters
         ----------
-        series : pandas.Series
-            Electricity price data.
+        tariff_dict : dict of pandas.Series
+            keys: Cluster ID, values: Electricity price data.
         resolution : int
             Desired resolution.
 
@@ -91,15 +92,16 @@ class MultiClusterSystem(object):
         None.
         
         """
-
-        start = min(series.index)
-        end = max(series.index) + timedelta(hours=1)
-        n_of_steps = int((end - start) / resolution)
-        timerange = [start + t * resolution for t in range(n_of_steps + 1)]
-        temp_ser = series.reindex(timerange)
-
-        self.tou_price = temp_ser.ffill()
-
+        for cc_id, cluster in self.clusters.items():
+            series = tariff_dict[cc_id]
+            start = min(series.index)
+            end = max(series.index) + timedelta(hours=1)
+            n_of_steps = int((end - start) / resolution)
+            timerange = [start + t * resolution for t in range(n_of_steps + 1)]
+            temp_ser = series.reindex(timerange)
+            self.tou_price[cc_id] = temp_ser.ffill()
+            self.clusters[cc_id].tou_price = self.tou_price[cc_id]
+       
     def enter_power_limits(self, start, end, step, peaklimits):
         """
         This method enters limits (lower and upper) for aggregate net power
@@ -446,7 +448,7 @@ class MultiClusterSystem(object):
             n = 0
             for cc_id, cc in sorted(self.clusters.items()):
                 profile = cc.analyze_occupation_profile(start, end, step).sum(axis=1)
-                profile.plot(ax=ax[n], title=cc_id, linewidth=2)
+                profile.plot(ax=ax[n], title=cc_id, linewidth=2, color='darkred')
                 n += 1
 
             ax[n - 1].set_xlabel("Time")

@@ -181,6 +181,68 @@ def on_message(client, userdata, msg):
             #Optimization horizon covers earliest arrival and latest departure 
             opt_parameters['opt_horizon_start']=pd.Series(opt_parameters['arrtime']).min()
             opt_parameters['opt_horizon_end']  =pd.Series(opt_parameters['deptime']).max()
+            
+
+
+            '''
+            ###########################################################################################################
+            # Random assignment algorithm
+            ###########################################################################################################
+            import random
+
+            # Assuming your data is stored in a variable called 'your_data'
+            # Extract the list of chargers from the 'arrtime' keys
+            charger_keys = list(opt_parameters['arrtime'].keys())
+
+            # Step 1: Choose a random charger
+            chosen_charger_key = random.choice(charger_keys)
+
+            # Step 2: Extract the aggregator_id from the chosen charger key
+            aggregator_id = chosen_charger_key.split('_')[-1]
+
+            # Step 3: Remove data related to other chargers
+            for key in charger_keys:
+                if aggregator_id not in key:
+                    del opt_parameters['arrtime'][key]
+                    del opt_parameters['deptime'][key]
+                    del opt_parameters['arrsoc'][key]
+                    del opt_parameters['p_ch'][key]
+                    del opt_parameters['p_ds'][key]
+                    del opt_parameters['dps_g2v'][key]
+                    del opt_parameters['dps_v2g'][key]
+                    del opt_parameters['candidate_chargers'][key]
+                if aggregator_id == '1':
+                    opt_parameters['tarsoc'] = tarsocs['aggregator_1']
+            ###########################################################################################################
+            '''
+            '''
+            ###########################################################################################################
+            # Only prices algorithm
+            ###########################################################################################################
+            # Calculate the sum of 'dps_g2v' values for each aggregator
+            sums = {key: sum(values.values()) for key, values in opt_parameters['dps_g2v'].items()}
+
+            # Extract the list of chargers from the 'arrtime' keys
+            charger_keys = list(opt_parameters['arrtime'].keys())
+        
+            # Find the aggregator with the minimum sum
+            min_aggregator = min(sums, key=sums.get)
+
+            # Keep only the entry for the aggregator with the minimum sum
+            for key in charger_keys:
+                if key != min_aggregator:
+                    del opt_parameters['arrtime'][key]
+                    del opt_parameters['deptime'][key]
+                    del opt_parameters['arrsoc'][key]
+                    del opt_parameters['p_ch'][key]
+                    del opt_parameters['p_ds'][key]
+                    del opt_parameters['dps_g2v'][key]
+                    del opt_parameters['dps_v2g'][key]
+                    del opt_parameters['candidate_chargers'][key]
+                else:
+                    opt_parameters['tarsoc'] = tarsocs[key]
+            ###########################################################################################################
+            '''
 
             #Parsing the inputs for Optimization microservice
             routing_optimization_parameters=json.dumps(opt_parameters)

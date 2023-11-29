@@ -36,7 +36,7 @@ async def provide_forecast(item: TFRequest):
         response[aggregator]['estimate_arrival_SOC']=item.drive_start_SOC
         
         if aggregator=='aggregator_2':
-            if item.vehicle_id == 'ev001':
+            if item.vehicle_id == 'ev005001':
                 response[aggregator]['estimate_arrival_time']=item.drive_start_time+1500
             else:
                 response[aggregator]['estimate_arrival_time']=item.drive_start_time

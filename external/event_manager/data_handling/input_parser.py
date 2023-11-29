@@ -14,8 +14,9 @@ def parse_standard_xlsx_input(file_path):
     -------
     clusters_dict
     capacities_dict
+    service_fleet
     fleet
-    tou_tariff
+    tou_tariff_dict
 
     """
 
@@ -24,6 +25,7 @@ def parse_standard_xlsx_input(file_path):
     # Create dictionaries for Cluster and Capacity inputs
     clusters_dict = {}
     capacities_dict = {}
+    tou_tariff_dict = {}
 
     # Loop through the sheet names
     for sheet_name in input_file.sheet_names:
@@ -39,12 +41,15 @@ def parse_standard_xlsx_input(file_path):
             # Read the sheet into a DataFrame
             df = input_file.parse(sheet_name)
             capacities_dict[key] = df
+        elif sheet_name.startswith('Price'):
+            # Extract the key (the number after 'Price')
+            key = str(sheet_name.replace('Price', ''))
+            # Read the sheet into a DataFrame
+            tou_tariff_dict[key] = input_file.parse(sheet_name)
+            #price_t_steps = df["TimeStep"].round("S")
+            #tou_tariff_dict[key] = pd.DataFrame(df["Price (per/kWh)"].values, index=price_t_steps)
     
     service_fleet = pd.read_excel(input_file, "ServiceFleet")
     fleet = pd.read_excel(input_file, "Fleet")
 
-    input_price = pd.read_excel(input_file, "Price")
-    price_t_steps = input_price["TimeStep"].round("S")
-    tou_tariff = pd.Series(input_price["Price (per/kWh)"].values, index=price_t_steps)
-
-    return clusters_dict, capacities_dict, service_fleet, fleet, tou_tariff
+    return clusters_dict, capacities_dict, service_fleet, fleet, tou_tariff_dict

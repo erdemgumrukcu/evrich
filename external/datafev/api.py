@@ -11,7 +11,7 @@ from data_handling.cluster import ChargerCluster
 from data_handling.multi_cluster import MultiClusterSystem
 from data_handling.fleet import EVFleet
 
-'''
+
 def reset_mysql_database(host, user, password, db_name):
     """
     Resets a MySQL database by dropping it if it exists and creating a new one.
@@ -68,47 +68,7 @@ mysql_database = os.environ.get('MYSQL_DB')
 
 # Reset MySQL Database for re-usage
 reset_mysql_database(mysql_host, mysql_user, mysql_password, mysql_database)
-'''
-'''
-# Define the date and time strings
-date_string1 = "01/08/2022 07:05:00"
-date_string2 = "01/08/2022 07:10:00"
-date_string3 = "01/08/2022 07:15:00"
-date_string4 = "01/08/2022 07:20:00"
-date_string5 = "01/08/2022 07:25:00"
-date_string6 = "01/08/2022 07:30:00"
-date_string7 = "01/08/2022 07:35:00"
-date_string8 = "01/08/2022 07:40:00"
 
-# Create datetime objects from the strings
-dt1 = datetime.strptime(date_string1, "%m/%d/%Y %H:%M:%S")
-dt2 = datetime.strptime(date_string2, "%m/%d/%Y %H:%M:%S")
-dt3 = datetime.strptime(date_string3, "%m/%d/%Y %H:%M:%S")
-dt4 = datetime.strptime(date_string4, "%m/%d/%Y %H:%M:%S")
-dt5 = datetime.strptime(date_string5, "%m/%d/%Y %H:%M:%S")
-dt6 = datetime.strptime(date_string6, "%m/%d/%Y %H:%M:%S")
-dt7 = datetime.strptime(date_string7, "%m/%d/%Y %H:%M:%S")
-dt8 = datetime.strptime(date_string8, "%m/%d/%Y %H:%M:%S")
-
-# Get the Unix timestamps
-timestamp1 = int(dt1.timestamp())
-timestamp2 = int(dt2.timestamp())
-timestamp3 = int(dt3.timestamp())
-timestamp4 = int(dt4.timestamp())
-timestamp5 = int(dt5.timestamp())
-timestamp6 = int(dt6.timestamp())
-timestamp7 = int(dt7.timestamp())
-timestamp8 = int(dt8.timestamp())
-
-print("Unix timestamp for 01/08/2022 07:05:00:", timestamp1)
-print("Unix timestamp for 01/08/2022 07:10:00:", timestamp2)
-print("Unix timestamp for 01/08/2022 07:15:00:", timestamp3)
-print("Unix timestamp for 01/08/2022 07:20:00:", timestamp4)
-print("Unix timestamp for 01/08/2022 07:25:00:", timestamp5)
-print("Unix timestamp for 01/08/2022 07:30:00:", timestamp6)
-print("Unix timestamp for 01/08/2022 07:35:00:", timestamp7)
-print("Unix timestamp for 01/08/2022 07:40:00:", timestamp8)
-'''
 app = FastAPI()
 
 # Define a Pydantic model to represent the data datafev will receive
@@ -117,12 +77,13 @@ class DatafevInitData(BaseModel):
     input_capacities_dict: Dict[str, Dict[str, Any]]
     input_service_fleet: Dict[str, Any]
     input_fleet: Dict[str, Any]
-    tariff_as_dataframe: Dict[str, Any]
+    input_tariff_dict: Dict[str, Dict[str, Any]]
     sim_parameters: Dict[str, Any]
 
 # Store received data in these variables
 clusters_dict = {}
 capacities_dict = {}
+tariff_dict = {}
 fleet_parameters = None
 service_fleet_parameters = None
 tariff = None
@@ -146,6 +107,17 @@ async def receive_datafev_init(data: DatafevInitData):
         # Create the Pandas DataFrame
         df = pd.DataFrame(sub_dict['data'], index=sub_dict['index'], columns=sub_dict['columns'])
         capacities_dict[key] = df
+    # Tariff dictionary
+    tariff_dict_ = {}
+    for key, sub_dict in data.input_tariff_dict.items():
+        # Convert the datetime strings to datetime objects and round them to the nearest second
+        sub_dict['data'] = [[pd.to_datetime(dt_str).round('S'), TimeStep] for dt_str, TimeStep in sub_dict['data']]
+        # Create the Pandas DataFrame
+        df = pd.DataFrame(sub_dict['data'], index=sub_dict['index'], columns=sub_dict['columns'])
+        tariff_dict_[key] = df
+    # Convert each DataFrame to Series with 'TimeStep' as index
+    tariff_dict = {key: value.set_index('TimeStep')['Price (per/kWh)'] for key, value in tariff_dict_.items()}
+    
     # Sim parameters dictionary
     # Convert the datetime strings in sim_parameters to datetime objects and round them
     sim_parameters['sim_start'] = datetime.strptime(data.sim_parameters['sim_start'], '%Y-%m-%d %H:%M:%S')
@@ -158,10 +130,6 @@ async def receive_datafev_init(data: DatafevInitData):
     # Fleet pandas Dataframe
     service_fleet_parameters = pd.DataFrame(data.input_service_fleet['data'], index=data.input_service_fleet['index'], columns=data.input_service_fleet['columns'])
     fleet_parameters = pd.DataFrame(data.input_fleet['data'], index=data.input_fleet['index'], columns=data.input_fleet['columns'])
-    # Tariff pandas Series
-    tariff_df = pd.DataFrame(data.tariff_as_dataframe['data'], index=data.tariff_as_dataframe['index'], columns=data.tariff_as_dataframe['columns'])
-    tariff_df.index = pd.to_datetime(tariff_df.index)
-    tariff = tariff_df['tariff_data']
 
     # Initialize datafev objects
     # Multi cluster mcsystem of the simulation
@@ -174,7 +142,7 @@ async def receive_datafev_init(data: DatafevInitData):
         charger_cluster = ChargerCluster(key, df)
         mcsystem.add_cc(charger_cluster)
         charger_cluster.enter_power_limits(sim_parameters['sim_start'], sim_parameters['sim_end'], sim_parameters['sim_step'], capacities_dict.get(key))
-    mcsystem.enter_tou_price(tariff, sim_parameters['sim_step'])
+    mcsystem.enter_tou_price(tariff_dict, sim_parameters['sim_step'])
 
     return {"message": "Datafev initialization data received successfully."}
 
@@ -234,7 +202,7 @@ async def request_charging_offer(item: ChargerSelectionRequest):
         schedule = mcsystem.clusters[cluster_id].query_actual_schedule(start, end, step)
         upper_bound = mcsystem.clusters[cluster_id].upper_limit[start:end]
         lower_bound = mcsystem.clusters[cluster_id].lower_limit[start:end]
-        tou_tariff = mcsystem.tou_price
+        tou_tariff = mcsystem.tou_price[cluster_id]
 
         # TODO: to be given under XLSX input
         #f_discount : global parameter
@@ -476,7 +444,7 @@ async def synchronizer(charge_request: SynchronizeRequest):
                 if cu.connected_ev != None:
                     cu.supply(ts, step, cu.schedule_pow[cu.active_schedule_instance][ts])
 
-    '''
+    
     #####################################################################################################################################
     #####################################################################################################################################
     # Data upload to MySQL database
@@ -635,7 +603,7 @@ async def synchronizer(charge_request: SynchronizeRequest):
         # Commit and close the connection
         connection.commit()
         connection.close()
-    '''
+    
     # Save datafev XLSX outputs if its the last timestamp of the simulation
     if ts==sim_parameters['sim_end']-sim_parameters['sim_step']:
 
