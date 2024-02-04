@@ -1,92 +1,48 @@
 # evrich
 
-
-
-## Getting started
-
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://git.rwth-aachen.de/acs/public/automation/evrich.git
-git branch -M main
-git push -uf origin main
-```
-
-## Integrate with your tools
-
-- [ ] [Set up project integrations](https://git.rwth-aachen.de/acs/public/automation/evrich/-/settings/integrations)
-
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
 ## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+evrich is a cloud service available in the microservice-based grid automation platform SOGNO that addresses the question of "where to charge" in distribution grids with multiple charging locations. It exposes an application programming interface to the users. The EV drivers can post their charging preferences, indicating a search space, target state-of-charge, and parking period. In return, evrich searches the available charging spots in the specified area, collects offers from the charging station operators, and instructs the EV driver to the best option under the given situation. The current optimization approach in the evrich prioritizes charging cost minimization for the drivers. However, its modular architecture allows for the integration of alternative approaches.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+TODO: The cloud service is also ready for in-the-loop-testings.
+## Contribution
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+1. Clone repository via SSH (`git clone git@git.rwth-aachen.de:acs/public/automation/evrich.git`) or clone repository via HTTPS (`git clone https://git.rwth-aachen.de/acs/public/automation/evrich.git`)
+2. Open an issue at [https://git.rwth-aachen.de/acs/public/automation/evrich/issues](https://git.rwth-aachen.de/acs/public/automation/evrich/issues)
+3. Checkout the development branch: `git checkout development` 
+4. Update your local development branch (if necessary): `git pull origin development`
+5. Create your feature/issue branch: `git checkout -b issueXY_explanation`
+6. Commit your changes: `git commit -m "Add feature #XY"`
+7. Push to the branch: `git push origin issueXY_explanation`
+8. Submit a pull request from issueXY_explanation to development branch via [https://git.rwth-aachen.de/acs/public/automation/evrich/pulls](https://git.rwth-aachen.de/acs/public/automation/evrich/pulls)
+9. Wait for approval or revision of the new implementations.
 
 ## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+Docker Desktop installation is essential to use evrich, which can be downloaded from: [https://www.docker.com/products/docker-desktop/](https://www.docker.com/products/docker-desktop/)
+
+To maximize the flexibility of the test framework in terms of incorporating a large number of charge locations, the docker-compose generation process was automated. The developed software docker-compose-prepper automates the process of generating docker-compose files, which are required to configure both internal (containers within the SOGNO platform) and external (datafev objects representing the interacted charging stations) dependencies of a dynamic test environment. Docker-compose-prepper requires at least the following Python packages:
+- pandas >= 2.0.3
+- pyyaml >= 6.0.1
+- openpyxl >= 3.1.2
 
 ## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+### evrich Service
+TODO
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### Cloud Testing of evrich Service (Windows)
+1. User may start with reshaping input files under `PATH-TO-DIRECTORY/external/event_manager/data_handling/input.xlsx`, `PATH-TO-DIRECTORY/external/utils/input.xlsx` and `PATH-TO-DIRECTORY/sogno/utils/input.xlsx` with the desired scenario data. These input files should be exactly identical.
+2. Docker-compose-prepper scripts located at external/utils/prep_docker_compose.py and sogno/utils/prep_docker_compose.py should both be run.
+3. In Windows PowerShell `docker-compose build` should be executed under both external(`PATH-TO-DIRECTORY/evrich/external`) and SOGNO(`PATH-TO-DIRECTORY/evrich/sogno`) directories.
+4. Only for the first time, again in Windows PowerShell, `docker-compose up` should be first executed under external(`PATH-TO-DIRECTORY/evrich/external`) and then under SOGNO(`PATH-TO-DIRECTORY/evrich/sogno`) directory. This is due to the need to identify external networks to the SOGNO.
+5. The building of the cloud-testing infrastructure of evrich service has been completed. The user should first execute `docker-compose up` command under SOGNO(`PATH-TO-DIRECTORY/evrich/sogno`) and afterwards under external(`PATH-TO-DIRECTORY/evrich/external`) directory in Windows PowerShell.
+6. The output data will be saved under `PATH-TO-DIRECTORY/datafev/outputs`
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+## Contact
+- Erdem Gumrukcu, M.Sc. <erdem.guemruekcue@eonerc.rwth-aachen.de>
+- Florian Oppermann, M.Sc. <florian.oppermann@eonerc.rwth-aachen.de>
+- Aytug Yavuzer, M.Sc. <aytug.yavuzer@eonerc.rwth-aachen.de>
+- Univ.-Prof. Antonello Monti, Ph.D. <post_acs@eonerc.rwth-aachen.de>
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+[Institute for Automation of Complex Power Systems (ACS)](http://www.acs.eonerc.rwth-aachen.de) \
+[E.ON Energy Research Center (E.ON ERC)](http://www.eonerc.rwth-aachen.de) \
+[RWTH Aachen University, Germany](http://www.rwth-aachen.de)
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
