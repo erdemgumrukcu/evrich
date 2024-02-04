@@ -42,42 +42,6 @@ services:
     - aggregator_network
     ports:
     - 9002:9002
-  aggregator_3:
-    build:
-      context: ./aggregator
-      dockerfile: ./Dockerfile
-    container_name: aggregator_3
-    depends_on:
-    - datafev
-    environment:
-    - CLUSTER_ID=3
-    - IP_ADDRESS=0.0.0.0
-    - PORT_NUMBER=9003
-    - PYTHONUNBUFFERED=1
-    - DATAFEV_CHARGER_SELECTION_URL=http://host.docker.internal:9004/charger_selection/
-    - DATAFEV_RESERVATION_URL=http://host.docker.internal:9004/reservation/
-    networks:
-    - aggregator_network
-    ports:
-    - 9003:9003
-  aggregator_4:
-    build:
-      context: ./aggregator
-      dockerfile: ./Dockerfile
-    container_name: aggregator_4
-    depends_on:
-    - datafev
-    environment:
-    - CLUSTER_ID=4
-    - IP_ADDRESS=0.0.0.0
-    - PORT_NUMBER=9005
-    - PYTHONUNBUFFERED=1
-    - DATAFEV_CHARGER_SELECTION_URL=http://host.docker.internal:9004/charger_selection/
-    - DATAFEV_RESERVATION_URL=http://host.docker.internal:9004/reservation/
-    networks:
-    - aggregator_network
-    ports:
-    - 9005:9005
   datafev:
     build:
       context: ./datafev
@@ -95,7 +59,7 @@ services:
     ports:
     - 9004:9004
     volumes:
-    - /C/Users/aytugy/Desktop/workspace/evrich/external/datafev/outputs:/app/outputs
+    - /C/Users/aytugy/Documents/workspace/evrich/external/datafev/outputs:/app/outputs
   event_manager:
     build:
       context: ./event_manager

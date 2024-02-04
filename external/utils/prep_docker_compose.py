@@ -118,7 +118,7 @@ compose_config = {
                 "PYTHONUNBUFFERED=1"
             ],
             "volumes": [
-                "/C/Users/aytugy/Desktop/workspace/evrich/external/datafev/outputs:/app/outputs"
+                "/C/Users/aytugy/Documents/workspace/evrich/external/datafev/outputs:/app/outputs"
             ]
         },
         "mysql": {

@@ -49,40 +49,6 @@ services:
     networks:
     - sogno_network
     - external_aggregator_network
-  connector_3:
-    build:
-      context: ./connector
-      dockerfile: ./Dockerfile
-    container_name: connector_3
-    depends_on:
-    - coordinator
-    environment:
-    - CONNECTOR_ID=aggregator_3
-    - AGGREGATOR_AVAILABILITY_URL=http://host.docker.internal:9003/availability/
-    - AGGREGATOR_SCHEDULE_URL=http://host.docker.internal:9003/schedule/
-    - REQUEST_TOPIC=availability/request/aggregator_3
-    - RESPONSE_TOPIC=availability/response/aggregator_3
-    - PYTHONUNBUFFERED=1
-    networks:
-    - sogno_network
-    - external_aggregator_network
-  connector_4:
-    build:
-      context: ./connector
-      dockerfile: ./Dockerfile
-    container_name: connector_4
-    depends_on:
-    - coordinator
-    environment:
-    - CONNECTOR_ID=aggregator_4
-    - AGGREGATOR_AVAILABILITY_URL=http://host.docker.internal:9005/availability/
-    - AGGREGATOR_SCHEDULE_URL=http://host.docker.internal:9005/schedule/
-    - REQUEST_TOPIC=availability/request/aggregator_4
-    - RESPONSE_TOPIC=availability/response/aggregator_4
-    - PYTHONUNBUFFERED=1
-    networks:
-    - sogno_network
-    - external_aggregator_network
   coordinator:
     build:
       context: ./coordinator
