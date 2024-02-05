@@ -30,7 +30,7 @@ TODO
 
 ### Cloud Testing of evrich Service (Windows)
 1. User may start with reshaping input files under `PATH-TO-DIRECTORY/external/event_manager/data_handling/input.xlsx`, `PATH-TO-DIRECTORY/external/utils/input.xlsx` and `PATH-TO-DIRECTORY/sogno/utils/input.xlsx` with the desired scenario data. These input files should be exactly identical.
-2. Docker-compose-prepper scripts located at external/utils/prep_docker_compose.py and sogno/utils/prep_docker_compose.py should both be run.
+2. Docker-compose-prepper scripts located at `PATH-TO-DIRECTORY/external/utils/prep_docker_compose.py` and `PATH-TO-DIRECTORY/sogno/utils/prep_docker_compose.py` should both be run.
 3. In Windows PowerShell `docker-compose build` should be executed under both external(`PATH-TO-DIRECTORY/evrich/external`) and SOGNO(`PATH-TO-DIRECTORY/evrich/sogno`) directories.
 4. Only for the first time, again in Windows PowerShell, `docker-compose up` should be first executed under external(`PATH-TO-DIRECTORY/evrich/external`) and then under SOGNO(`PATH-TO-DIRECTORY/evrich/sogno`) directory. This is due to the need to identify external networks to the SOGNO.
 5. The building of the cloud-testing infrastructure of evrich service has been completed. The user should first execute `docker-compose up` command under SOGNO(`PATH-TO-DIRECTORY/evrich/sogno`) and afterwards under external(`PATH-TO-DIRECTORY/evrich/external`) directory in Windows PowerShell.
