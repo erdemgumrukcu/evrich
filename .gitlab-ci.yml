@@ -12,9 +12,11 @@ build-traffic:
   stage: build
   script:
     - cd external/traffic
+    - source build.env
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE/traffic:latest -f ./Dockerfile .
+    - docker build -t $CI_REGISTRY_IMAGE/traffic:latest -t $CI_REGISTRY_IMAGE/traffic:$VERSION -f ./Dockerfile .
     - docker push $CI_REGISTRY_IMAGE/traffic:latest
+    - docker push $CI_REGISTRY_IMAGE/traffic:$VERSION
   tags:
     - docker
   rules:
@@ -78,9 +80,11 @@ build-coordinator:       # This job runs in the build stage, which runs first.
   stage: build
   script:
     - cd sogno/coordinator
+    - source build.env
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE/coordinator:latest -f ./Dockerfile .
+    - docker build -t $CI_REGISTRY_IMAGE/coordinator:latest -t $CI_REGISTRY_IMAGE/coordinator:$VERSION -f ./Dockerfile .
     - docker push $CI_REGISTRY_IMAGE/coordinator:latest
+    - docker push $CI_REGISTRY_IMAGE/coordinator:$VERSION
   tags:
     - docker
   rules:
@@ -92,9 +96,11 @@ build-connector:       # This job runs in the build stage, which runs first.
   stage: build
   script:
     - cd sogno/connector
+    - source build.env
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE/connector:latest -f ./Dockerfile .
+    - docker build -t $CI_REGISTRY_IMAGE/connector:latest -t $CI_REGISTRY_IMAGE/connector:$VERSION -f ./Dockerfile .
     - docker push $CI_REGISTRY_IMAGE/connector:latest
+    - docker push $CI_REGISTRY_IMAGE/connector:$VERSION
   tags:
     - docker
   rules:
@@ -106,9 +112,11 @@ build-routing:       # This job runs in the build stage, which runs first.
   stage: build
   script:
     - cd sogno/optimizer
+    - source build.env
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE/routing:latest -f ./Dockerfile .
+    - docker build -t $CI_REGISTRY_IMAGE/routing:latest -t $CI_REGISTRY_IMAGE/routing:$VERSION -f ./Dockerfile .
     - docker push $CI_REGISTRY_IMAGE/routing:latest
+    - docker push $CI_REGISTRY_IMAGE/routing:$VERSION
   tags:
     - docker
   rules:
@@ -120,9 +128,11 @@ build-api:       # This job runs in the build stage, which runs first.
   stage: build
   script:
     - cd sogno/api
+    - source build.env
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE/api:latest -f ./Dockerfile .
+    - docker build -t $CI_REGISTRY_IMAGE/api:latest -t $CI_REGISTRY_IMAGE/api:$VERSION -f ./Dockerfile .
     - docker push $CI_REGISTRY_IMAGE/api:latest
+    - docker push $CI_REGISTRY_IMAGE/api:$VERSION
   tags:
     - docker
   rules:
