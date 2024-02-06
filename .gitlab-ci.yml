@@ -26,54 +26,55 @@ build-traffic:
   
 
 
-build-aggregator-1:       # This job runs in the build stage, which runs first.
+build-aggregator:       # This job runs in the build stage, which runs first.
   # image:  $DOCKER_BUILD_IMAGE
   stage: build
   script:
-    - cd external/aggregator1
+    - cd external/aggregator
     - source build.env
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE/aggregator1:latest -t $CI_REGISTRY_IMAGE/aggregator1:$VERSION -f ./Dockerfile .
-    - docker push $CI_REGISTRY_IMAGE/aggregator1:latest
-    - docker push $CI_REGISTRY_IMAGE/aggregator1:$VERSION
+    - docker build -t $CI_REGISTRY_IMAGE/aggregator:latest -t $CI_REGISTRY_IMAGE/aggregator:$VERSION -f ./Dockerfile .
+    - docker push $CI_REGISTRY_IMAGE/aggregator:latest
+    - docker push $CI_REGISTRY_IMAGE/aggregator:$VERSION
   tags:
     - docker
   rules:
     - changes: 
-      - external/aggregator1/**
+      - external/aggregator/**
 
-build-aggregator-2:       # This job runs in the build stage, which runs first.
+# XXX should this even be build here or should this be the stock datafev image?
+build-datafev:       # This job runs in the build stage, which runs first.
   # image:  $DOCKER_BUILD_IMAGE
   stage: build
   script:
-    - cd external/aggregator2
+    - cd external/aggregator
     - source build.env
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE/aggregator2:latest -t $CI_REGISTRY_IMAGE/aggregator2:$VERSION -f ./Dockerfile .
-    - docker push $CI_REGISTRY_IMAGE/aggregator2:latest
-    - docker push $CI_REGISTRY_IMAGE/aggregator2:$VERSION
+    - docker build -t $CI_REGISTRY_IMAGE/datafev:latest -t $CI_REGISTRY_IMAGE/datafev:$VERSION -f ./Dockerfile .
+    - docker push $CI_REGISTRY_IMAGE/datafev:latest
+    - docker push $CI_REGISTRY_IMAGE/datafev:$VERSION
   tags:
     - docker
   rules:
     - changes: 
-      - external/aggregator2/**
+      - external/datafev/**
 
-
-build-aggregator-3:       # This job runs in the build stage, which runs first.
+build-event_manager:       # This job runs in the build stage, which runs first.
   # image:  $DOCKER_BUILD_IMAGE
   stage: build
   script:
-    - cd external/aggregator3
+    - cd external/aggregator
     - source build.env
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE/aggregator3:latest -t $CI_REGISTRY_IMAGE/aggregator3:$VERSION -f ./Dockerfile .
-    - docker push $CI_REGISTRY_IMAGE/aggregator3:latest
-    - docker push $CI_REGISTRY_IMAGE/aggregator3:$VERSION
+    - docker build -t $CI_REGISTRY_IMAGE/event_manager:latest -t $CI_REGISTRY_IMAGE/event_manager:$VERSION -f ./Dockerfile .
+    - docker push $CI_REGISTRY_IMAGE/event_manager:latest
+    - docker push $CI_REGISTRY_IMAGE/event_manager:$VERSION
   tags:
     - docker
   rules:
     - changes: 
-      - external/aggregator3/**
+      - external/event_manager/**
+
 
 build-coordinator:       # This job runs in the build stage, which runs first.
   # image:  $DOCKER_BUILD_IMAGE
