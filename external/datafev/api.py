@@ -103,7 +103,7 @@ async def receive_datafev_init(data: DatafevInitData):
     # Create Pandas DataFrames from the capacities data dictionary while converting and rounding datetime strings
     for key, sub_dict in data.input_capacities_dict.items():
         # Convert the datetime strings to datetime objects and round them to the nearest second
-        sub_dict['data'] = [[pd.to_datetime(dt_str).round('S'), lb, ub] for dt_str, lb, ub in sub_dict['data']]
+        sub_dict['data'] = [[pd.to_datetime(dt_str).round('s'), lb, ub] for dt_str, lb, ub in sub_dict['data']]
         # Create the Pandas DataFrame
         df = pd.DataFrame(sub_dict['data'], index=sub_dict['index'], columns=sub_dict['columns'])
         capacities_dict[key] = df
@@ -111,7 +111,7 @@ async def receive_datafev_init(data: DatafevInitData):
     tariff_dict_ = {}
     for key, sub_dict in data.input_tariff_dict.items():
         # Convert the datetime strings to datetime objects and round them to the nearest second
-        sub_dict['data'] = [[pd.to_datetime(dt_str).round('S'), TimeStep] for dt_str, TimeStep in sub_dict['data']]
+        sub_dict['data'] = [[pd.to_datetime(dt_str).round('s'), TimeStep] for dt_str, TimeStep in sub_dict['data']]
         # Create the Pandas DataFrame
         df = pd.DataFrame(sub_dict['data'], index=sub_dict['index'], columns=sub_dict['columns'])
         tariff_dict_[key] = df

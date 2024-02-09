@@ -321,13 +321,13 @@ class MultiClusterSystem(object):
 
             consu_cu_df = pd.concat(con_cu_dict, axis=1)
             consu_cu_df.to_excel(writer, sheet_name="Consumption (Units)")
-            (consu_cu_df.groupby(level=0, axis=1).sum()).to_excel(
+            (consu_cu_df.T.groupby(level=0).sum()).to_excel(
                 writer, sheet_name="Consumption (Aggregate)"
             )
 
             occup_cu_df = pd.concat(occ_cu_dict, axis=1)
             occup_cu_df.to_excel(writer, sheet_name="Occupation (Units)")
-            (occup_cu_df.groupby(level=0, axis=1).sum()).to_excel(
+            (occup_cu_df.T.groupby(level=0).sum()).to_excel(
                 writer, sheet_name="Occupation (Aggregate)"
             )
 
@@ -377,7 +377,7 @@ class MultiClusterSystem(object):
                 ax=ax, label="Lower Limit", linewidth=1, linestyle="--"
             )
             ax.set_ylabel("kW")
-            ax.legend(loc="best")
+            ax.legend(loc="lower right")
             ax.set_xlabel("Time")
 
         else:
@@ -397,7 +397,7 @@ class MultiClusterSystem(object):
                 ax[n].set_ylabel("kW")
                 n += 1
 
-            ax[n - 1].legend(loc="best")
+            ax[n - 1].legend(loc="lower right")
             ax[n - 1].set_xlabel("Time")
         
         # Save the figure if output_filepath is provided
