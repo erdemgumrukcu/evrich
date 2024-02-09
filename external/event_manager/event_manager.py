@@ -129,11 +129,11 @@ else:
             if time.time() - start_time > timeout:
                 raise TimeoutError("Timeout waiting for counters to match")
             datafev_request_counter_response = requests.get(datafev_get_counter_url)
-            if response.status_code == 200:
+            if datafev_request_counter_response.status_code == 200:
                 data = datafev_request_counter_response.json()
                 datafev_request_counter = data.get("value")
             else:
-                print(f"Error: {response.status_code}")
+                print(f"Error: {datafev_request_counter_response.status_code}")
 
         # Reset counters for the next timestamp
         event_manager_request_counter = 0
