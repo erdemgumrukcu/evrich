@@ -5,6 +5,7 @@ Created on Mon Dec 19 11:15:39 2022
 @author: egu
 """
 
+from threading import Lock
 import paho.mqtt.client as mqtt
 import pandas as pd
 import requests
@@ -47,12 +48,19 @@ def on_connect(client, userdata, flags, rc):
         availability_response_topics[connector_name]='availability/response/'+connector_name
         client.subscribe(availability_response_topics[connector_name])
 
+timer_lock = Lock()
+last_connect = float("inf")
+
 def on_connector_id_message(client, userdata, msg):
     global connector_list
+    global timer_lock
+    global last_connect
     connector_id = msg.payload.decode("utf-8")
     if connector_id not in connector_list:
         connector_list.append(connector_id)
         print(f"Connector with ID '{connector_id}' has been saved to the connectors list.")
+        with timer_lock:
+            last_connect = time.perf_counter()
      
 def on_message(client, userdata, msg):
        
@@ -304,10 +312,13 @@ client_connector_ids.connect(mqtt_broker_url, mqtt_broker_port)
 
 # Start the loop and begin listening to the "connector_ids" topic
 client_connector_ids.loop_start()
+
 print("Gathering controller IDs.")
 # Wait for a while to collect Connector IDs
-time.sleep(5)  # Adjust the appropriate time
 
+while time.perf_counter() - last_connect < 5:  # Adjust the appropriate time
+    print(f"no new connectors registered in {time.perf_counter() - last_connect:f.2} s")
+    time.sleep(1)
 # End the loop to ensure the Controller's connection is not cut off
 client_connector_ids.loop_stop()
 print("Finished gathering controller IDs.")
