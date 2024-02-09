@@ -23,14 +23,14 @@ for _, row in cluster_df.iterrows():
         {
             "container_name": f"aggregator_{row['cluster_id']}",
             "build": {"context": "./aggregator", "dockerfile": "./Dockerfile"},
-            "networks": ["aggregator_network"],
+            "networks": ["aggregator_network", "external_network"],
             "environment": [
                 f"CLUSTER_ID={row['cluster_id']}",
                 f"IP_ADDRESS={row['ip_address']}",
                 f"PORT_NUMBER={row['port_number']}",
                 "PYTHONUNBUFFERED=1",
-                f"DATAFEV_CHARGER_SELECTION_URL=http://host.docker.internal:{other_df.at['datafev', 'port_number']}/charger_selection/",
-                f"DATAFEV_RESERVATION_URL=http://host.docker.internal:{other_df.at['datafev', 'port_number']}/reservation/",
+                f"DATAFEV_CHARGER_SELECTION_URL=http://datafev:{other_df.at['datafev', 'port_number']}/charger_selection/",
+                f"DATAFEV_RESERVATION_URL=http://datafev:{other_df.at['datafev', 'port_number']}/reservation/",
             ],
             "ports": [f"{row['port_number']}:{row['port_number']}"],
             "depends_on": ["datafev"],
@@ -41,7 +41,7 @@ for _, row in cluster_df.iterrows():
 compose_config = {
     "version": "3",
     "networks": {
-        "traffic_network": {"driver": "bridge"},
+        "control_network": {"driver": "bridge"},
         "aggregator_network": {"driver": "bridge"},
         "external_network": {"driver": "bridge"},
     },
@@ -49,7 +49,7 @@ compose_config = {
         "trafficapi": {
             "container_name": "TrafficAPI",
             "build": {"context": "./traffic", "dockerfile": "./Dockerfile"},
-            "networks": ["traffic_network"],
+            "networks": ["external_network"],
             "ports": [
                 f"{other_df.at['trafficapi', 'port_number']}:{other_df.at['trafficapi', 'port_number']}"
             ],
@@ -58,12 +58,12 @@ compose_config = {
         "event_manager": {
             "container_name": "event_manager",
             "build": {"context": "./event_manager", "dockerfile": "./Dockerfile"},
-            "networks": ["external_network"],
+            "networks": ["external_network", "aggregator_network"],
             "environment": [
-                "SERVICE_API_URL=http://host.docker.internal:7000/routing/post_request_type1/",
-                f"DATAFEV_INIT_URL=http://host.docker.internal:{other_df.at['datafev', 'port_number']}/datafev_init/",
-                f"DATAFEV_GET_REQUEST_COUNTER_URL=http://host.docker.internal:{other_df.at['datafev', 'port_number']}/get_request_counter/",
-                f"DATAFEV_SYNCHRONIZE_URL=http://host.docker.internal:{other_df.at['datafev', 'port_number']}/synchronize/",
+                "SERVICE_API_URL=http://api:7000/routing/post_request_type1/",
+                f"DATAFEV_INIT_URL=http://datafev:{other_df.at['datafev', 'port_number']}/datafev_init/",
+                f"DATAFEV_GET_REQUEST_COUNTER_URL=http://datafev:{other_df.at['datafev', 'port_number']}/get_request_counter/",
+                f"DATAFEV_SYNCHRONIZE_URL=http://datafev:{other_df.at['datafev', 'port_number']}/synchronize/",
                 "PYTHONUNBUFFERED=1",
             ],
             "depends_on": ["datafev"],
@@ -71,7 +71,7 @@ compose_config = {
         "datafev": {
             "container_name": "datafev",
             "build": {"context": "./datafev", "dockerfile": "./Dockerfile"},
-            "networks": ["external_network"],
+            "networks": ["aggregator_network"],
             "ports": [
                 f"{other_df.at['datafev', 'port_number']}:{other_df.at['datafev', 'port_number']}"
             ],
@@ -93,7 +93,7 @@ compose_config = {
             "ports": [
                 f"{other_df.at['mysql', 'port_number']}:{other_df.at['mysql', 'port_number']}"
             ],
-            "networks": ["external_network"],
+            "networks": ["aggregator_network"],
             "healthcheck": {
                 "test": ["CMD", "mysqladmin", "ping", "-h", "localhost"],
                 "timeout": "5s",

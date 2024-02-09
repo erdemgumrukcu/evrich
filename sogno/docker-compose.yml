@@ -1,6 +1,4 @@
 networks:
-  external_aggregator_network:
-    external: true
   external_external_network:
     external: true
   sogno_network:
