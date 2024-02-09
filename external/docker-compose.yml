@@ -3,7 +3,7 @@ networks:
     driver: bridge
   external_network:
     driver: bridge
-  traffic_network:
+  control_network:
     driver: bridge
 services:
   aggregator_1:
@@ -18,10 +18,11 @@ services:
     - IP_ADDRESS=0.0.0.0
     - PORT_NUMBER=9001
     - PYTHONUNBUFFERED=1
-    - DATAFEV_CHARGER_SELECTION_URL=http://host.docker.internal:9004/charger_selection/
-    - DATAFEV_RESERVATION_URL=http://host.docker.internal:9004/reservation/
+    - DATAFEV_CHARGER_SELECTION_URL=http://datafev:9004/charger_selection/
+    - DATAFEV_RESERVATION_URL=http://datafev:9004/reservation/
     networks:
     - aggregator_network
+    - external_network
     ports:
     - 9001:9001
   aggregator_2:
@@ -36,10 +37,11 @@ services:
     - IP_ADDRESS=0.0.0.0
     - PORT_NUMBER=9002
     - PYTHONUNBUFFERED=1
-    - DATAFEV_CHARGER_SELECTION_URL=http://host.docker.internal:9004/charger_selection/
-    - DATAFEV_RESERVATION_URL=http://host.docker.internal:9004/reservation/
+    - DATAFEV_CHARGER_SELECTION_URL=http://datafev:9004/charger_selection/
+    - DATAFEV_RESERVATION_URL=http://datafev:9004/reservation/
     networks:
     - aggregator_network
+    - external_network
     ports:
     - 9002:9002
   datafev:
@@ -47,9 +49,6 @@ services:
       context: ./datafev
       dockerfile: ./Dockerfile
     container_name: datafev
-    depends_on:
-      mysql:
-        condition: service_healthy
     environment:
     - MYSQL_HOST=mysql
     - MYSQL_PORT=3306
@@ -57,12 +56,15 @@ services:
     - MYSQL_PASSWORD=root
     - MYSQL_DB=mydatabase
     - PYTHONUNBUFFERED=1
+    depends_on:
+      mysql: 
+        condition: service_healthy
     networks:
-    - external_network
+    - aggregator_network
     ports:
     - 9004:9004
     volumes:
-    - ./datafev/outputs:/app/outputs
+    - /C/Users/aytugy/Documents/workspace/evrich/external/datafev/outputs:/app/outputs # TODO this volume link is should not be fixed
   event_manager:
     build:
       context: ./event_manager
@@ -71,32 +73,28 @@ services:
     depends_on:
     - datafev
     environment:
-    - SERVICE_API_URL=http://host.docker.internal:7000/routing/post_request_type1/
-    - DATAFEV_INIT_URL=http://host.docker.internal:9004/datafev_init/
-    - DATAFEV_GET_REQUEST_COUNTER_URL=http://host.docker.internal:9004/get_request_counter/
-    - DATAFEV_SYNCHRONIZE_URL=http://host.docker.internal:9004/synchronize/
+    - SERVICE_API_URL=http://api:7000/routing/post_request_type1/
+    - DATAFEV_INIT_URL=http://datafev:9004/datafev_init/
+    - DATAFEV_GET_REQUEST_COUNTER_URL=http://datafev:9004/get_request_counter/
+    - DATAFEV_SYNCHRONIZE_URL=http://datafev:9004/synchronize/
     - PYTHONUNBUFFERED=1
     networks:
     - external_network
+    - aggregator_network
   mysql:
     container_name: mysql
     environment:
     - MYSQL_ROOT_PASSWORD=root
     - MYSQL_DATABASE=mydatabase
-    healthcheck:
-      retries: 10
-      test:
-      - CMD
-      - mysqladmin
-      - ping
-      - -h
-      - localhost
-      timeout: 5s
     image: mysql:latest
     networks:
-    - external_network
+    - aggregator_network
     ports:
     - 3306:3306
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 10
   trafficapi:
     build:
       context: ./traffic
@@ -105,7 +103,7 @@ services:
     environment:
     - PYTHONUNBUFFERED=1
     networks:
-    - traffic_network
+    - external_network
     ports:
     - 8000:8000
 version: '3'

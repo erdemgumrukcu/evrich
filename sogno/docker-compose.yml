@@ -1,7 +1,7 @@
 networks:
   external_aggregator_network:
     external: true
-  external_traffic_network:
+  external_external_network:
     external: true
   sogno_network:
     driver: bridge
@@ -13,6 +13,7 @@ services:
     container_name: ServiceAPI
     networks:
     - sogno_network
+    - external_external_network
     ports:
     - 7000:7000
   connector_1:
@@ -24,14 +25,14 @@ services:
     - coordinator
     environment:
     - CONNECTOR_ID=aggregator_1
-    - AGGREGATOR_AVAILABILITY_URL=http://host.docker.internal:9001/availability/
-    - AGGREGATOR_SCHEDULE_URL=http://host.docker.internal:9001/schedule/
+    - AGGREGATOR_AVAILABILITY_URL=http://aggregator_1:9001/availability/
+    - AGGREGATOR_SCHEDULE_URL=http://aggregator_1:9001/schedule/
     - REQUEST_TOPIC=availability/request/aggregator_1
     - RESPONSE_TOPIC=availability/response/aggregator_1
     - PYTHONUNBUFFERED=1
     networks:
     - sogno_network
-    - external_aggregator_network
+    - external_external_network
   connector_2:
     build:
       context: ./connector
@@ -41,25 +42,25 @@ services:
     - coordinator
     environment:
     - CONNECTOR_ID=aggregator_2
-    - AGGREGATOR_AVAILABILITY_URL=http://host.docker.internal:9002/availability/
-    - AGGREGATOR_SCHEDULE_URL=http://host.docker.internal:9002/schedule/
+    - AGGREGATOR_AVAILABILITY_URL=http://aggregator_2:9002/availability/
+    - AGGREGATOR_SCHEDULE_URL=http://aggregator_2:9002/schedule/
     - REQUEST_TOPIC=availability/request/aggregator_2
     - RESPONSE_TOPIC=availability/response/aggregator_2
     - PYTHONUNBUFFERED=1
     networks:
     - sogno_network
-    - external_aggregator_network
+    - external_external_network
   coordinator:
     build:
       context: ./coordinator
       dockerfile: ./Dockerfile
     container_name: coordinator
     environment:
-    - TRAFFIC_URL=http://host.docker.internal:8000/trafficforecast/
+    - TRAFFIC_URL=http://trafficapi:8000/trafficforecast/
     - PYTHONUNBUFFERED=1
     networks:
     - sogno_network
-    - external_traffic_network
+    - external_external_network
   gatewaymqtt:
     container_name: broker
     expose:
