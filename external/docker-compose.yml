@@ -47,6 +47,9 @@ services:
       context: ./datafev
       dockerfile: ./Dockerfile
     container_name: datafev
+    depends_on:
+      mysql:
+        condition: service_healthy
     environment:
     - MYSQL_HOST=mysql
     - MYSQL_PORT=3306
@@ -59,7 +62,7 @@ services:
     ports:
     - 9004:9004
     volumes:
-    - /C/Users/aytugy/Documents/workspace/evrich/external/datafev/outputs:/app/outputs
+    - ./datafev/outputs:/app/outputs
   event_manager:
     build:
       context: ./event_manager
@@ -80,6 +83,15 @@ services:
     environment:
     - MYSQL_ROOT_PASSWORD=root
     - MYSQL_DATABASE=mydatabase
+    healthcheck:
+      retries: 10
+      test:
+      - CMD
+      - mysqladmin
+      - ping
+      - -h
+      - localhost
+      timeout: 5s
     image: mysql:latest
     networks:
     - external_network
