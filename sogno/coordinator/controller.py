@@ -317,7 +317,7 @@ print("Gathering controller IDs.")
 # Wait for a while to collect Connector IDs
 
 while time.perf_counter() - last_connect < 5:  # Adjust the appropriate time
-    print(f"no new connectors registered in {time.perf_counter() - last_connect:f.2} s")
+    print(f"no new connectors registered in {time.perf_counter() - last_connect:.2f} s")
     time.sleep(1)
 # End the loop to ensure the Controller's connection is not cut off
 client_connector_ids.loop_stop()
