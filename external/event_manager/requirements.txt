@@ -1,7 +1,5 @@
-datetime
-numpy
-pandas
-matplotlib
-openpyxl
-requests
-
+numpy~=1.26
+openpyxl~=3.1
+requests~=2.31
+matplotlib~=3.8
+pandas~=2.0

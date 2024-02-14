@@ -1,6 +1,4 @@
-uvicorn
-fastapi
-typing
-pandas
-datetime
-requests
+uvicorn~=0.27
+fastapi~=0.109
+requests~=2.31
+pandas~=2.0
